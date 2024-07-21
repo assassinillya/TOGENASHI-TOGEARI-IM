@@ -4,9 +4,10 @@ import (
 	"flag"
 	"fmt"
 	"im_server/core"
-	models2 "im_server/im_chat/models"
-	models3 "im_server/im_group/models"
-	"im_server/im_user/models"
+	"im_server/im_chat/chat_models"
+	"im_server/im_group/group_models"
+	"im_server/im_user/user_models"
+	"log"
 )
 
 type Options struct {
@@ -21,23 +22,22 @@ func main() {
 	if opt.DB {
 		db := core.InitMysql()
 		err := db.AutoMigrate(
-			&models.UserModel{},
-			&models.FriendModel{},
-			&models.FriendVerifyModel{},
-			&models.UserConfModel{},
-
-			&models2.ChatModel{},
-			&models3.GroupModel{},
-			&models3.GroupMemberModel{},
-			&models3.GroupMsgModel{},
-			&models3.GroupVerifyModel{},
+			&user_models.UserModel{},
+			&user_models.FriendModel{},
+			&user_models.FriendVerifyModel{},
+			&user_models.UserConfModel{},
+			&chat_models.ChatModel{},
+			&group_models.GroupModel{},
+			&group_models.GroupMemberModel{},
+			&group_models.GroupMsgModel{},
+			&group_models.GroupVerifyModel{},
 		)
 
 		if err != nil {
 			fmt.Println("表结构生成失败", err)
 			return
 		}
-
+		log.Println("表结构生成成功！")
 		fmt.Println("表结构生成成功！")
 
 	}

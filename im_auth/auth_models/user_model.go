@@ -1,4 +1,4 @@
-package models
+package auth_models
 
 import "im_server/common/models"
 
