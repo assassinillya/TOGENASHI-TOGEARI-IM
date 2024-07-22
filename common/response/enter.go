@@ -24,13 +24,13 @@ func Response(r *http.Request, w http.ResponseWriter, resp interface{}, err erro
 		return
 	}
 	//错误返回
-	errCode := uint32(10086)
+	errCode := uint32(7)
 	// 可以根据错误码，返回具体错误信息
-	errMsg := "服务器错误"
+	//errMsg := "服务器错误"
 
-	httpx.WriteJson(w, http.StatusBadRequest, &Body{
+	httpx.WriteJson(w, http.StatusOK, &Body{
 		Code: errCode,
-		Msg:  errMsg,
+		Msg:  err.Error(),
 		Data: nil,
 	})
 
