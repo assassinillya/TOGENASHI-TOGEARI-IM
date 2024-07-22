@@ -28,5 +28,5 @@ service auth {
 
 	@handler open_login
 	post /api/auth/open_login returns (LoginResponse) // 第三方登录
-} // 在此文件夹下运行goctl api go -api auth_api.api -dir .
+} // 在此文件夹下运行 goctl api go -api auth_api.api -dir . --home ../../template
 
