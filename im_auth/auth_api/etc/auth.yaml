@@ -1,3 +1,9 @@
 Name: auth
 Host: 0.0.0.0
-Port: 8888
+Port: 20021
+Mysql:
+  DataSource: root:123456@tcp(120.78.234.30:3306)/im_server_db?charset=utf8mb4&parseTime=True&loc=Local
+Auth:
+  AccessSecret: dfff1234
+  AccessExpire: 3600
+

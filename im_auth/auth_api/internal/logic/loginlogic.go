@@ -26,5 +26,11 @@ func NewLoginLogic(ctx context.Context, svcCtx *svc.ServiceContext) *LoginLogic 
 func (l *LoginLogic) Login(req *types.LoginRequest) (resp *types.LoginResponse, err error) {
 	// todo: add your logic here and delete this line
 
-	return
+	return &types.LoginResponse{
+		Code: 0,
+		Msg:  "登录成功",
+		Data: types.LoginInfo{
+			Token: "123456",
+		},
+	}, nil
 }
