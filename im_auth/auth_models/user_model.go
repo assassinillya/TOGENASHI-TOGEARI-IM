@@ -12,4 +12,5 @@ type UserModel struct {
 	Avatar   string `gorm:"size:256" json:"avatar"`
 	IP       string `gorm:"size:32" json:"ip"`
 	Addr     string `gorm:"size:64" json:"addr"`
+	Role     int8   `json:"role"` // 角色 1 管理员 2 普通用户
 }

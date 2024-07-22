@@ -6,4 +6,8 @@ Mysql:
 Auth:
   AccessSecret: dfff1234
   AccessExpire: 3600
-
+Log:
+  ServiceName: auth
+  Encoding: plain
+  Stat: false
+  TimeFormat: 2006-01-02 15:04:05
