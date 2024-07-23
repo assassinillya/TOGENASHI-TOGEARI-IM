@@ -13,6 +13,11 @@ type OpenLoginInfoResponse {
 	Href string `json:"href"` // 跳转地址
 }
 
+type OpenLoginRequest {
+	Code string `json:"code"`
+	Flag string `json:"flag"` // 登录标志, 第三方登录标识
+}
+
 service auth {
 	@handler login
 	post /api/auth/login (LoginRequest) returns (LoginResponse) // 登录接口
@@ -27,6 +32,6 @@ service auth {
 	get /api/auth/open_login returns ([]OpenLoginInfoResponse) // 第三方登录的信息
 
 	@handler open_login
-	post /api/auth/open_login returns (LoginResponse) // 第三方登录
+	post /api/auth/open_login (OpenLoginRequest) returns (LoginResponse) // 第三方登录
 } // 在此文件夹下运行 goctl api go -api auth_api.api -dir . --home ../../template
 

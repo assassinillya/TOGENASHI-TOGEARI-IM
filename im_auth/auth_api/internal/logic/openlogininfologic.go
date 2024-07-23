@@ -2,7 +2,6 @@ package logic
 
 import (
 	"context"
-
 	"im_server/im_auth/auth_api/internal/svc"
 	"im_server/im_auth/auth_api/internal/types"
 
@@ -24,7 +23,14 @@ func NewOpen_login_infoLogic(ctx context.Context, svcCtx *svc.ServiceContext) *O
 }
 
 func (l *Open_login_infoLogic) Open_login_info() (resp []types.OpenLoginInfoResponse, err error) {
-	// todo: add your logic here and delete this line
 
+	for _, s := range l.svcCtx.Config.OpenLoginList {
+		resp = append(resp, types.OpenLoginInfoResponse{
+			Name: s.Name,
+			Href: s.Href,
+			Icon: s.Icon,
+		})
+	}
 	return
+
 }

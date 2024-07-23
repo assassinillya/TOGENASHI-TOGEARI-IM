@@ -16,4 +16,14 @@ type Config struct {
 		Pwd  string
 		DB   int
 	}
+	OpenLoginList []struct {
+		Name string
+		Icon string
+		Href string
+	}
+	QQ struct {
+		AppID    string
+		AppKey   string
+		Redirect string
+	}
 }
