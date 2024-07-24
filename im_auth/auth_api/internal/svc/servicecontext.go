@@ -19,13 +19,13 @@ type ServiceContext struct {
 
 func NewServiceContext(c config.Config) *ServiceContext {
 	mysqlDb := core.InitGorm(c.Mysql.DataSource)
-	redisClient := core.InitRedis(c.Redis.Addr, c.Redis.Pwd, c.Redis.DB)
+	client := core.InitRedis(c.Redis.Addr, c.Redis.Pwd, c.Redis.DB)
 
 	//mysqlDb.AutoMigrate(&auth_models.UserModel{})
 	return &ServiceContext{
 		Config:  c,
 		DB:      mysqlDb,
-		Redis:   redisClient,
+		Redis:   client,
 		UserRpc: users.NewUsers(zrpc.MustNewClient(c.UserRpc)),
 	}
 }

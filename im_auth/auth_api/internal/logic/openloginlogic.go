@@ -46,8 +46,7 @@ func (l *Open_loginLogic) Open_login(req *types.OpenLoginRequest) (resp *types.L
 		if err != nil {
 			// todo 注册逻辑
 			log.Println("注册服务")
-
-			res, err := l.svcCtx.Config.UserRpc.UserCreate(context.Background(), &user_rpc.UserCreateRequest{
+			res, err := l.svcCtx.UserRpc.UserCreate(context.Background(), &user_rpc.UserCreateRequest{
 				NickName: info.Nickname,
 				Password: "",
 				Role:     2,
