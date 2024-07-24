@@ -6,3 +6,7 @@ Etcd:
   Key: userrpc.rpc
 Mysql:
   DataSource: root:123456@tcp(120.78.234.30:3306)/im_server_db?charset=utf8mb4&parseTime=True&loc=Local
+Log:
+  Encoding: plain
+  Stat: false
+  TimeFormat: 2006-01-02 15:04:05

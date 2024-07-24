@@ -7,7 +7,6 @@ Auth:
   AccessSecret: dfff1234
   AccessExpire: 3600
 Log:
-  ServiceName: auth
   Encoding: plain
   Stat: false
   TimeFormat: 2006-01-02 15:04:05
@@ -16,8 +15,8 @@ Redis:
   Pwd: "123456"
   DB: 0
 QQ:
-  AppID: 101974593
-  AppKey:
+  AppID: "102150379"
+  AppKey: "68xjJfsrdBUeeQxF"
   Redirect: http://www.togenashitogeari.com/login?flag=qq
 OpenLoginList:
   - name: QQ登录

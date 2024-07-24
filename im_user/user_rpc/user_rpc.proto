@@ -9,6 +9,7 @@ message UserCreateRequest {
   int32 role = 3;
   string avatar = 4;
   string open_id = 5;
+  string RegisterSource = 6;
 }
 
 message UserCreateResponse {
