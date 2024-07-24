@@ -54,7 +54,6 @@ func (l *Open_loginLogic) Open_login(req *types.OpenLoginRequest) (resp *types.L
 				Avatar:   info.Avatar,
 				OpenId:   info.OpenID,
 			})
-			l.svcCtx.Config.UserRpc.
 			if err != nil {
 				logx.Error(err)
 				return nil, errors.New("注册失败")
