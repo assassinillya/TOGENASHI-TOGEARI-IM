@@ -18,8 +18,13 @@ Redis:
 QQ:
   AppID: 101974593
   AppKey:
-  Redirect: http://www.fengfengzhidao.com/login?flag=qq
+  Redirect: http://www.togenashitogeari.com/login?flag=qq
 OpenLoginList:
   - name: QQ登录
     icon: https://www.fengfengzhidao.com/image/icon/qq.png
-    href: https://graph.qq.com/oauth2.0/show?which=Login&display=pc&response_type=code&client_id=101974593&redirect_uri=http://www.fengfengzhidao.com/login?flag=qq
+    href: https://graph.qq.com/oauth2.0/show?which=Login&display=pc&response_type=code&client_id=101974593&redirect_uri=http://www.togenashitogeari.com/login?flag=qq
+UserRpc:
+  Etcd:
+    Hosts:
+      - 127.0.0.1:2379
+    Key: userrpc.rpc

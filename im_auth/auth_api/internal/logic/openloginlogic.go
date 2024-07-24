@@ -3,14 +3,14 @@ package logic
 import (
 	"context"
 	"errors"
-	"im_server/im_auth/auth_models"
-	"im_server/utils/open_login"
-	"log"
-
+	"github.com/zeromicro/go-zero/core/logx"
 	"im_server/im_auth/auth_api/internal/svc"
 	"im_server/im_auth/auth_api/internal/types"
-
-	"github.com/zeromicro/go-zero/core/logx"
+	"im_server/im_auth/auth_models"
+	"im_server/im_user/user_rpc/types/user_rpc"
+	"im_server/utils/jwts"
+	"im_server/utils/open_login"
+	"log"
 )
 
 type Open_loginLogic struct {
@@ -46,9 +46,36 @@ func (l *Open_loginLogic) Open_login(req *types.OpenLoginRequest) (resp *types.L
 		if err != nil {
 			// todo 注册逻辑
 			log.Println("注册服务")
+
+			res, err := l.svcCtx.Config.UserRpc.UserCreate(context.Background(), &user_rpc.UserCreateRequest{
+				NickName: info.Nickname,
+				Password: "",
+				Role:     2,
+				Avatar:   info.Avatar,
+				OpenId:   info.OpenID,
+			})
+			l.svcCtx.Config.UserRpc.
+			if err != nil {
+				logx.Error(err)
+				return nil, errors.New("注册失败")
+			}
+			user.Model.ID = uint(res.UserId)
+			user.Role = 2
+			user.Nickname = info.Nickname
 		}
 		//todo 登录逻辑
-		//jwts.GenToken()
+		token, err := jwts.GenToken(jwts.JwtPayLoad{
+			UserID:   user.ID,
+			Nickname: user.Nickname,
+			Role:     user.Role,
+		}, l.svcCtx.Config.Auth.AccessSecret, l.svcCtx.Config.Auth.AccessExpire)
+		if err != nil {
+			logx.Error(err)
+			err = errors.New("服务内部错误")
+			return
+		}
+
+		return &types.LoginResponse{Token: token}, nil
 	}
 
 	return
