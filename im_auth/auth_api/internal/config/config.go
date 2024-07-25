@@ -7,6 +7,7 @@ import (
 
 type Config struct {
 	rest.RestConf
+	Etcd  string
 	Mysql struct {
 		DataSource string
 	}

@@ -1,6 +1,6 @@
 Name: auth
 Host: 0.0.0.0
-Port: 20021
+Port: 20023
 Mysql:
   DataSource: root:123456@tcp(120.78.234.30:3306)/im_server_db?charset=utf8mb4&parseTime=True&loc=Local
 Auth:
@@ -14,6 +14,7 @@ Redis:
   Addr: 120.78.234.30:6379
   Pwd: "123456"
   DB: 0
+Etcd: 127.0.0.1:2379
 QQ:
   AppID: "102150379"
   AppKey: "68xjJfsrdBUeeQxF"
