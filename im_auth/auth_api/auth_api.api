@@ -18,12 +18,17 @@ type OpenLoginRequest {
 	Flag string `json:"flag"` // 登录标志, 第三方登录标识
 }
 
+type AuthenticationRequest {
+	Token    string `Header:"Token,optional"`
+	ValiPath string `Header:"ValiPath,optional"`
+}
+
 service auth {
 	@handler login
 	post /api/auth/login (LoginRequest) returns (LoginResponse) // 登录接口
 
 	@handler authentication
-	post /api/auth/authentication returns (string) // 认证接口
+	post /api/auth/authentication (AuthenticationRequest) returns (string) // 认证接口
 
 	@handler logout
 	post /api/auth/logout returns (string) // 注销

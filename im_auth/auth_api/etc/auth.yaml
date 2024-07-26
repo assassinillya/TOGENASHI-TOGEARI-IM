@@ -28,3 +28,8 @@ UserRpc:
     Hosts:
       - 127.0.0.1:2379
     Key: userrpc.rpc
+WhiteList:
+  - /api/auth/login
+  - /api/auth/open_login
+  - /api/auth/authentication
+  - /api/auth/logout

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -14,23 +15,16 @@ import (
 	"strings"
 )
 
-var serviceMap = map[string]string{
-	"auth": "http://127.0.0.1:20021",
-	"user": "http://127.0.0.1:20022",
-}
-
 func gateway(res http.ResponseWriter, req *http.Request) {
-	// 匹配请求路径 /api/user/xx
-	regex, _ := regexp.Compile(`/api/(.*?)/`)
+	regex, _ := regexp.Compile(`/api/(.*?)/`) // 匹配请求路径 /api/user/xx
 	addrList := regex.FindStringSubmatch(req.URL.Path)
 	if len(addrList) != 2 {
 		res.Write([]byte("err"))
 		return
 	}
-
 	service := addrList[1]
-
 	addr := etcd.GetServiceAddr(config.Etcd, service+"_api")
+	log.Println("Service address from etcd:", addr) // 打印获取的地址
 	if addr == "" {
 		fmt.Println("不匹配的服务", service)
 		res.Write([]byte("err"))
@@ -42,12 +36,15 @@ func gateway(res http.ResponseWriter, req *http.Request) {
 
 	//请求认证服务地址
 	authAddr := etcd.GetServiceAddr(config.Etcd, "auth_api")
+	//authAddr:="127.0.0.1:20023"
 	authUrl := fmt.Sprintf("http://%s/api/auth/authentication", authAddr)
-	authReq, _ := http.NewRequest("POST", authUrl, req.Body)
-	authReq.Header.Set("X-Forwarded-For", remoteAddr[0])
+	authReq, _ := http.NewRequest("POST", authUrl, nil)
+	authReq.Header = req.Header
+	authReq.Header.Set("ValidPath", req.URL.Path)
+
 	authRes, err := http.DefaultClient.Do(authReq)
 	if err != nil {
-		logx.Error(err)
+		log.Println("认证服务错误123123123123123123 ", err)
 		res.Write([]byte("认证服务错误"))
 		return
 	}
@@ -73,15 +70,20 @@ func gateway(res http.ResponseWriter, req *http.Request) {
 
 	url := fmt.Sprintf("http://%s%s", addr, req.URL.String())
 	fmt.Println(url)
-	proxyReq, err := http.NewRequest(req.Method, url, req.Body)
+
+	byteData, _ = io.ReadAll(req.Body)
+
+	proxyReq, err := http.NewRequest(req.Method, url, bytes.NewReader(byteData))
 	if err != nil {
 		logx.Error(err)
 		res.Write([]byte("服务异常"))
 		return
 	}
-	response, err := http.DefaultClient.Do(proxyReq)
-	if err != nil {
-		fmt.Println(err)
+	proxyReq.Header = req.Header
+	proxyReq.Header.Del("ValidPath")
+	response, ProxyErr := http.DefaultClient.Do(proxyReq)
+	if ProxyErr != nil {
+		fmt.Println(ProxyErr)
 		res.Write([]byte("服务异常"))
 		return
 	}
