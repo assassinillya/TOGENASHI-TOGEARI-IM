@@ -1,13 +1,15 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"github.com/zeromicro/go-zero/core/conf"
 	"github.com/zeromicro/go-zero/core/logx"
 	"im_server/common/etcd"
 	"io"
-	"net/http"
+	"log"
+	http "net/http"
 	"regexp"
 	"strings"
 )
@@ -36,6 +38,39 @@ func gateway(res http.ResponseWriter, req *http.Request) {
 	}
 
 	remoteAddr := strings.Split(req.RemoteAddr, ":")
+	log.Println("remoteAddr", remoteAddr)
+
+	//请求认证服务地址
+	authAddr := etcd.GetServiceAddr(config.Etcd, "auth_api")
+	authUrl := fmt.Sprintf("http://%s/api/auth/authentication", authAddr)
+	authReq, _ := http.NewRequest("POST", authUrl, req.Body)
+	authReq.Header.Set("X-Forwarded-For", remoteAddr[0])
+	authRes, err := http.DefaultClient.Do(authReq)
+	if err != nil {
+		logx.Error(err)
+		res.Write([]byte("认证服务错误"))
+		return
+	}
+
+	type Response struct {
+		Code int    `json:"code"`
+		Msg  string `json:"msg"`
+	}
+	var authResponse Response
+	byteData, _ := io.ReadAll(authRes.Body)
+	authErr := json.Unmarshal(byteData, &authResponse)
+	if authErr != nil {
+		logx.Error(err)
+		res.Write([]byte("认证服务错误"))
+		return
+	}
+
+	// 认证不通过
+	if authResponse.Code != 0 {
+		res.Write(byteData)
+		return
+	}
+
 	url := fmt.Sprintf("http://%s%s", addr, req.URL.String())
 	fmt.Println(url)
 	proxyReq, err := http.NewRequest(req.Method, url, req.Body)
@@ -44,7 +79,6 @@ func gateway(res http.ResponseWriter, req *http.Request) {
 		res.Write([]byte("服务异常"))
 		return
 	}
-	proxyReq.Header.Set("X-Forwarded-For", remoteAddr[0])
 	response, err := http.DefaultClient.Do(proxyReq)
 	if err != nil {
 		fmt.Println(err)
