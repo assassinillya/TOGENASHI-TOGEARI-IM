@@ -2,8 +2,8 @@
 package types
 
 type AuthenticationRequest struct {
-	Token    string `Header:"Token,optional"`
-	ValiPath string `Header:"ValiPath,optional"`
+	Token     string `header:"Token,optional"`
+	ValidPath string `header:"ValidPath,optional"`
 }
 
 type LoginRequest struct {

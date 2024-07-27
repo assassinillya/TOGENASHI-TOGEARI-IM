@@ -5,6 +5,7 @@ import (
 	"net"
 )
 
+// GetIP 此方法会获取外网的地址并非本机的ip, 不作使用只作为留档
 func GetIP() (addr string) {
 	interfaces, err := net.Interfaces()
 	if err != nil {

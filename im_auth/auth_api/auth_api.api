@@ -19,8 +19,8 @@ type OpenLoginRequest {
 }
 
 type AuthenticationRequest {
-	Token    string `Header:"Token,optional"`
-	ValiPath string `Header:"ValiPath,optional"`
+	Token     string `header:"Token,optional"`
+	ValidPath string `header:"ValidPath,optional"`
 }
 
 service auth {

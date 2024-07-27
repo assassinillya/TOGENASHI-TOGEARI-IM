@@ -27,8 +27,8 @@ func NewAuthenticationLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Au
 }
 
 func (l *AuthenticationLogic) Authentication(req *types.AuthenticationRequest) (resp string, err error) {
-	if utils.InList(l.svcCtx.Config.WhiteList, req.ValiPath) {
-		logx.Infof("%s在白名单中", req.ValiPath)
+	if utils.InList(l.svcCtx.Config.WhiteList, req.ValidPath) {
+		logx.Infof("%s在白名单中", req.ValidPath)
 		return "ok", nil
 	}
 

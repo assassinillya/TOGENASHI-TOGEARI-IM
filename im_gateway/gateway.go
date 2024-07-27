@@ -27,7 +27,7 @@ func gateway(res http.ResponseWriter, req *http.Request) {
 	log.Println("Service address from etcd:", addr) // 打印获取的地址
 	if addr == "" {
 		fmt.Println("不匹配的服务", service)
-		res.Write([]byte("err"))
+		res.Write([]byte("不匹配的服务"))
 		return
 	}
 
@@ -42,9 +42,11 @@ func gateway(res http.ResponseWriter, req *http.Request) {
 	authReq.Header = req.Header
 	authReq.Header.Set("ValidPath", req.URL.Path)
 
+	log.Println("Token:", req.Header.Get("Authorization")) //打印请求头中的Token
+
 	authRes, err := http.DefaultClient.Do(authReq)
 	if err != nil {
-		log.Println("认证服务错误123123123123123123 ", err)
+		log.Println("认证服务错误 ", err)
 		res.Write([]byte("认证服务错误"))
 		return
 	}
