@@ -70,14 +70,13 @@ func auth(authAddr string, res http.ResponseWriter, req *http.Request) (ok bool)
 	if authResponse.Data != nil {
 		req.Header.Set("User-ID", fmt.Sprintf("%d", authResponse.Data.UserID))
 		req.Header.Set("Role", fmt.Sprintf("%d", authResponse.Data.Role))
-		return
 	}
 
-	//这一段是自己加的
-	if req.Header.Get("User-ID") == "" {
-		req.Header.Set("User-ID", fmt.Sprintf("%d", authResponse.Data.UserID))
-		req.Header.Set("Role", fmt.Sprintf("%d", authResponse.Data.Role))
-	}
+	////这一段是自己加的
+	//if req.Header.Get("User-ID") == "" {
+	//	req.Header.Set("User-ID", fmt.Sprintf("%d", authResponse.Data.UserID))
+	//	req.Header.Set("Role", fmt.Sprintf("%d", authResponse.Data.Role))
+	//}
 
 	return true
 }
