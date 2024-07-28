@@ -35,7 +35,7 @@ func auth(authAddr string, res http.ResponseWriter, req *http.Request) (ok bool)
 	authReq.Header = req.Header
 	authReq.Header.Set("ValidPath", req.URL.Path)
 
-	log.Println("Token:", req.Header.Get("Authorization")) //打印请求头中的Token
+	log.Println("Token:", req.Header.Get("Token")) //打印请求头中的Token
 
 	authRes, err := http.DefaultClient.Do(authReq)
 	if err != nil {
@@ -71,6 +71,12 @@ func auth(authAddr string, res http.ResponseWriter, req *http.Request) (ok bool)
 		req.Header.Set("User-ID", fmt.Sprintf("%d", authResponse.Data.UserID))
 		req.Header.Set("Role", fmt.Sprintf("%d", authResponse.Data.Role))
 		return
+	}
+
+	//这一段是自己加的
+	if req.Header.Get("User-ID") == "" {
+		req.Header.Set("User-ID", fmt.Sprintf("%d", authResponse.Data.UserID))
+		req.Header.Set("Role", fmt.Sprintf("%d", authResponse.Data.Role))
 	}
 
 	return true
@@ -121,6 +127,7 @@ func gateway(res http.ResponseWriter, req *http.Request) {
 
 	logx.Infof("%s %s", remoteAddr[0], proxyUrl)
 
+	//TODO 问题所在, 这个方法在/api/auth/login莫名其妙返回false 但实际上是走完了
 	if !auth(authUrl, res, req) {
 		return
 	}

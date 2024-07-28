@@ -9,7 +9,7 @@ type UserInfoRequest struct {
 type UserInfoResponse struct {
 	UserID         uint   `json:"userID`
 	NickName       string `json:"nickName`
-	Role           string `json:"role`
+	Role           int8   `json:"role`
 	Abstract       string `json:"abstract"`
 	Avatar         string `json:"avatar"`
 	RegisterSource string `json:"registerSource"` // 注册来源
