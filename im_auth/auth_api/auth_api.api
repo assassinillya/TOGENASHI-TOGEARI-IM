@@ -23,12 +23,17 @@ type AuthenticationRequest {
 	ValidPath string `header:"ValidPath,optional"`
 }
 
+type AuthenticationResponse {
+	UserID uint `json:"userID"`
+	Role   int  `json:"role"`
+}
+
 service auth {
 	@handler login
 	post /api/auth/login (LoginRequest) returns (LoginResponse) // 登录接口
 
 	@handler authentication
-	post /api/auth/authentication (AuthenticationRequest) returns (string) // 认证接口
+	post /api/auth/authentication (AuthenticationRequest) returns (AuthenticationResponse) // 认证接口
 
 	@handler logout
 	post /api/auth/logout returns (string) // 注销

@@ -1,0 +1,21 @@
+syntax = "v1"
+
+type UserInfoRequest {
+	UserID uint `header:"User-ID"`
+	Role   int8 `header:"Role"`
+}
+
+type UserInfoResponse {
+	UserID         uint   `json:"userID`
+	NickName       string `json:"nickName`
+	Role           string `json:"role`
+	Abstract       string `json:"abstract"`
+	Avatar         string `json:"avatar"`
+	RegisterSource string `json:"registerSource"` // 注册来源
+}
+
+service users {
+	@handler UserInfo
+	get /api/user/user_info (UserInfoRequest) returns (UserInfoResponse) // 用户信息接口
+} // 在此文件夹下运行 goctl api go -api user_api.api -dir . --home ../../template
+
