@@ -16,8 +16,17 @@ message UserCreateResponse {
   int32 user_id = 1;
 }
 
+message UserInfoRequest {
+  uint32 user_id = 1;
+}
+
+message UserInfoResponse {
+  bytes data = 1; // 用户和用户配置信息的json
+}
+
 service Users {
-  rpc UserCreate(UserCreateRequest) returns(UserCreateResponse);
+  rpc UserCreate(UserCreateRequest) returns(UserCreateResponse); // 创建用户
+  rpc UserInfo(UserInfoRequest) returns(UserInfoResponse); // 用户信息
 }
 
 

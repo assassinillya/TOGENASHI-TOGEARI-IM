@@ -72,12 +72,6 @@ func auth(authAddr string, res http.ResponseWriter, req *http.Request) (ok bool)
 		req.Header.Set("Role", fmt.Sprintf("%d", authResponse.Data.Role))
 	}
 
-	////这一段是自己加的
-	//if req.Header.Get("User-ID") == "" {
-	//	req.Header.Set("User-ID", fmt.Sprintf("%d", authResponse.Data.UserID))
-	//	req.Header.Set("Role", fmt.Sprintf("%d", authResponse.Data.Role))
-	//}
-
 	return true
 }
 
@@ -126,7 +120,6 @@ func gateway(res http.ResponseWriter, req *http.Request) {
 
 	logx.Infof("%s %s", remoteAddr[0], proxyUrl)
 
-	//TODO 问题所在, 这个方法在/api/auth/login莫名其妙返回false 但实际上是走完了
 	if !auth(authUrl, res, req) {
 		return
 	}

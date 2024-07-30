@@ -16,8 +16,8 @@ Redis:
   DB: 0
 Etcd: 127.0.0.1:2379
 QQ:
-  AppID: "102150379"
-  AppKey: "68xjJfsrdBUeeQxF"
+  AppID: "750087271"
+  AppKey: "76b8cb6a1d12503b203b5659e88c4154"
   Redirect: http://www.togenashitogeari.com/login?flag=qq
 OpenLoginList:
   - name: QQ登录

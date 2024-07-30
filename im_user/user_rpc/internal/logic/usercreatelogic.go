@@ -44,5 +44,18 @@ func (l *UserCreateLogic) UserCreate(in *user_rpc.UserCreateRequest) (*user_rpc.
 		return nil, errors.New("创建用户失败")
 	}
 
+	//创建用户配置 默认配置
+	l.svcCtx.DB.Create(&user_models.UserConfModel{
+		UserID:        user.ID,
+		RecallMessage: nil,   //撤回消息的提示内容 撤回了一条消息
+		FriendOnline:  false, //关闭好友上线提醒
+		Sound:         true,  //开启声音
+		SecureLink:    false, //关闭安全连接
+		SavePwd:       false, //不保存密码
+		SearchUser:    2,     // 可以通过用户id和昵称搜索
+		Verification:  2,     // 需要验证信息
+		Online:        true,
+	})
+
 	return &user_rpc.UserCreateResponse{UserId: int32(user.ID)}, nil
 }

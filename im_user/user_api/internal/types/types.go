@@ -7,10 +7,25 @@ type UserInfoRequest struct {
 }
 
 type UserInfoResponse struct {
-	UserID         uint   `json:"userID`
-	NickName       string `json:"nickName`
-	Role           int8   `json:"role`
-	Abstract       string `json:"abstract"`
-	Avatar         string `json:"avatar"`
-	RegisterSource string `json:"registerSource"` // 注册来源
+	UserID               uint                  `json:"userID`
+	NickName             string                `json:"nickname`
+	Abstract             string                `json:"abstract"`
+	Avatar               string                `json:"avatar"`
+	RecallMessage        *string               `json:"recallMessage"`
+	FriendOnline         bool                  `json:"friendOnline"`
+	Sound                bool                  `json:"sound"`
+	SecureLink           bool                  `json:"secureLink"`
+	SavePwd              bool                  `json:"savePwd"`
+	SearchUser           int8                  `json:"searchUser"`
+	Verification         int8                  `json:"verification"`
+	VerificationQuestion *VerificationQuestion `json:"verificationQuestion"`
+}
+
+type VerificationQuestion struct {
+	Problem1 *string `json:"problem1"`
+	Problem2 *string `json:"problem2"`
+	Problem3 *string `json:"problem3"`
+	Answer1  *string `json:"answer1"`
+	Answer2  *string `json:"answer2"`
+	Answer3  *string `json:"answer3"`
 }
