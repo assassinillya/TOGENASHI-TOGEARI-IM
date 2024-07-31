@@ -1,0 +1,13 @@
+syntax = "v1"
+
+type ImageRequest {}
+
+type ImageResponse {
+	Url string `json:"url"`
+}
+
+service file {
+	@handler Image
+	post /api/file/image (ImageRequest) returns (ImageResponse) // 图片上传
+} // 在此文件夹下运行 goctl api go -api file_api.api -dir . --home ../../template
+
