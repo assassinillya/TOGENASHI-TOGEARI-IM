@@ -58,30 +58,32 @@ func (l *UserInfoUpdateLogic) UserInfoUpdate(req *types.UserInfoUpdateRequest) (
 			delete(userConfMaps, "verification_question")
 
 			data := ctype.VerificationQuestion{}
-			if val, ok := verificationQuestion.(map[string]any)["problem1"]; ok {
-				s := val.(string)
-				data.Problem1 = &s
-			}
-			if val, ok := verificationQuestion.(map[string]any)["problem2"]; ok {
-				s := val.(string)
-				data.Problem2 = &s
-			}
-			if val, ok := verificationQuestion.(map[string]any)["problem3"]; ok {
-				s := val.(string)
-				data.Problem3 = &s
-			}
-			if val, ok := verificationQuestion.(map[string]any)["answer1"]; ok {
-				s := val.(string)
-				data.Answer1 = &s
-			}
-			if val, ok := verificationQuestion.(map[string]any)["answer2"]; ok {
-				s := val.(string)
-				data.Answer2 = &s
-			}
-			if val, ok := verificationQuestion.(map[string]any)["answer3"]; ok {
-				s := val.(string)
-				data.Answer3 = &s
-			}
+			maps.MapToStruct(verificationQuestion.(map[string]any), &data)
+
+			//if val, ok := verificationQuestion.(map[string]any)["problem1"]; ok {
+			//	s := val.(string)
+			//	data.Problem1 = &s
+			//}
+			//if val, ok := verificationQuestion.(map[string]any)["problem2"]; ok {
+			//	s := val.(string)
+			//	data.Problem2 = &s
+			//}
+			//if val, ok := verificationQuestion.(map[string]any)["problem3"]; ok {
+			//	s := val.(string)
+			//	data.Problem3 = &s
+			//}
+			//if val, ok := verificationQuestion.(map[string]any)["answer1"]; ok {
+			//	s := val.(string)
+			//	data.Answer1 = &s
+			//}
+			//if val, ok := verificationQuestion.(map[string]any)["answer2"]; ok {
+			//	s := val.(string)
+			//	data.Answer2 = &s
+			//}
+			//if val, ok := verificationQuestion.(map[string]any)["answer3"]; ok {
+			//	s := val.(string)
+			//	data.Answer3 = &s
+			//}
 			l.svcCtx.DB.Model(&userConf).Updates(&user_models.UserConfModel{
 				VerificationQuestion: &data,
 			})
