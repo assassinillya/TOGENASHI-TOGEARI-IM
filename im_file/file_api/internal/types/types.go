@@ -7,3 +7,8 @@ type ImageRequest struct {
 type ImageResponse struct {
 	Url string `json:"url"`
 }
+
+type ImageShowRequest struct {
+	ImageType string `path:"imageType"`
+	ImageName string `path:"imageName"`
+}

@@ -2,3 +2,7 @@ Name: file
 Host: 0.0.0.0
 Port: 8888
 Etcd: 127.0.0.1:2379
+Log:
+  Encoding: plain
+  Stat: false
+  TimeFormat: 2006-01-02 15:04:05

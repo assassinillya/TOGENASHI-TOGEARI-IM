@@ -6,8 +6,16 @@ type ImageResponse {
 	Url string `json:"url"`
 }
 
+type ImageShowRequest {
+	ImageType string `path:"imageType"`
+	ImageName string `path:"imageName"`
+}
+
 service file {
 	@handler Image
 	post /api/file/image (ImageRequest) returns (ImageResponse) // 图片上传
+
+	@handler ImageShow
+	get /api/file/uploads/:imageType/:imageName (ImageShowRequest)
 } // 在此文件夹下运行 goctl api go -api file_api.api -dir . --home ../../template
 
