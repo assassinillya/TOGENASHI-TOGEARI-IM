@@ -6,3 +6,11 @@ Log:
   Encoding: plain
   Stat: false
   TimeFormat: 2006-01-02 15:04:05
+FileSize: 2 # 单位为MB
+WhiteList:
+  - png
+  - jpg
+  - jpeg
+  - gif
+  - webp
+MaxBytes: 5368709120 # 5GB
