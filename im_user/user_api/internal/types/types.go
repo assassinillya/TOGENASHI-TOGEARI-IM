@@ -15,6 +15,18 @@ type FriendInfoResponse struct {
 	Notice   string `json:"notice"`
 }
 
+type FriendListRequest struct {
+	UserID uint `header:"User-ID"`
+	Role   int8 `header:"Role"`
+	Page   int  `form:"page,optional"`
+	Limit  int  `form:"limit,optional"`
+}
+
+type FriendListResponse struct {
+	List  []FriendInfoResponse `json:"list"`
+	Count int                  `json:"count"`
+}
+
 type UserInfoRequest struct {
 	UserID uint `header:"User-ID"`
 	Role   int8 `header:"Role"`
