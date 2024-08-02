@@ -1,0 +1,21 @@
+syntax = "v1"
+
+info (
+	title:   "type title here"
+	desc:    "type desc here"
+	author:  "type author here"
+	email:   "type email here"
+	version: "type version here"
+)
+
+type OpenLoginInfoResponse {
+	Name string `json:"name"`
+	Icon string `json:"icon"`
+	Href string `json:"href"` // 跳转地址
+}
+
+service settings {
+	@handler open_login_info
+	get /api/settings/open_login returns ([]OpenLoginInfoResponse) // 第三方登录信息
+} // 在此文件夹下运行 goctl api go -api settings_api.api -dir . --home ../../template
+

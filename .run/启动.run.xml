@@ -5,6 +5,7 @@
     <toRun name="3_user" type="GoApplicationRunConfiguration" />
     <toRun name="4_file" type="GoApplicationRunConfiguration" />
     <toRun name="5_auth" type="GoApplicationRunConfiguration" />
+    <toRun name="6_settings" type="GoApplicationRunConfiguration" />
     <method v="2" />
   </configuration>
 </component>

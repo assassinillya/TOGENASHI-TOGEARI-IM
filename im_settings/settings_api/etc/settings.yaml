@@ -1,0 +1,12 @@
+Name: settings
+Host: 0.0.0.0
+Port: 20026
+Etcd: 127.0.0.1:2379
+Log:
+  Encoding: plain
+  Stat: false
+  TimeFormat: 2006-01-02 15:04:05
+OpenLoginList:
+  - name: Gitee登录
+    icon: https://www.fengfengzhidao.com/image/icon/qq.png
+    href: https://graph.qq.com/oauth2.0/show?which=Login&display=pc&response_type=code&client_id=101974593&redirect_uri=http://www.togenashitogeari.com/login?flag=qq

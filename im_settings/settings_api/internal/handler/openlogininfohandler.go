@@ -2,8 +2,8 @@ package handler
 
 import (
 	"im_server/common/response"
-	"im_server/im_auth/auth_api/internal/logic"
-	"im_server/im_auth/auth_api/internal/svc"
+	"im_server/im_settings/settings_api/internal/logic"
+	"im_server/im_settings/settings_api/internal/svc"
 	"net/http"
 )
 

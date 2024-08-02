@@ -1,6 +1,6 @@
 Name: file
 Host: 0.0.0.0
-Port: 8888
+Port: 20025
 Etcd: 127.0.0.1:2379
 Log:
   Encoding: plain
