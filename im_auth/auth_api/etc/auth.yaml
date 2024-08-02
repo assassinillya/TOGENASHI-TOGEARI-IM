@@ -16,11 +16,11 @@ Redis:
   DB: 0
 Etcd: 127.0.0.1:2379
 QQ:
-  AppID: "750087271"
-  AppKey: "76b8cb6a1d12503b203b5659e88c4154"
-  Redirect: http://www.togenashitogeari.com/login?flag=qq
+  AppID: "499a5ea0bc36a486cc88f6199f51adc3b03c8b23904fed9a70067dfe3876816d"
+  AppKey: "c3d44aed679d54e910024fe2838deaf65af2f016baf884cd3ed1be3a1adf129f"
+  Redirect: http://www.togenashitogeari.com/login?flag=Gitee
 OpenLoginList:
-  - name: QQ登录
+  - name: Gitee登录
     icon: https://www.fengfengzhidao.com/image/icon/qq.png
     href: https://graph.qq.com/oauth2.0/show?which=Login&display=pc&response_type=code&client_id=101974593&redirect_uri=http://www.togenashitogeari.com/login?flag=qq
 UserRpc:
