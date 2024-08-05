@@ -2,6 +2,8 @@ package logic
 
 import (
 	"context"
+	"im_server/common/list_quary"
+	"im_server/common/models"
 	"im_server/im_user/user_models"
 
 	"im_server/im_user/user_api/internal/svc"
@@ -26,26 +28,35 @@ func NewFriendListLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Friend
 
 func (l *FriendListLogic) FriendList(req *types.FriendListRequest) (resp *types.FriendListResponse, err error) {
 
-	var count int64
-	l.svcCtx.DB.
-		Model(&user_models.FriendModel{}).
-		Where("send_user_id = ? or rev_user_id = ?", req.UserID, req.UserID).
-		Count(&count)
-	var friends []user_models.FriendModel
-	if req.Limit <= 0 {
-		req.Limit = 10
-	}
-	if req.Page <= 0 {
-		req.Page = 1
-	}
-	offset := (req.Page - 1) * req.Limit
+	//var count int64
+	//l.svcCtx.DB.
+	//	Model(&user_models.FriendModel{}).
+	//	Where("send_user_id = ? or rev_user_id = ?", req.UserID, req.UserID).
+	//	Count(&count)
+	//var friends []user_models.FriendModel
+	//if req.Limit <= 0 {
+	//	req.Limit = 10
+	//}
+	//if req.Page <= 0 {
+	//	req.Page = 1
+	//}
+	//offset := (req.Page - 1) * req.Limit
+	//
+	//l.svcCtx.DB.
+	//	Preload("SendUserModel").
+	//	Preload("RevUserModel").
+	//	Limit(req.Limit).
+	//	Offset(offset).
+	//	Find(&friends, "send_user_id = ? or rev_user_id = ?", req.UserID, req.UserID)
 
-	l.svcCtx.DB.
-		Preload("SendUserModel").
-		Preload("RevUserModel").
-		Limit(req.Limit).
-		Offset(offset).
-		Find(&friends, "send_user_id = ? or rev_user_id = ?", req.UserID, req.UserID)
+	friends, count, _ := list_quary.ListQuery(l.svcCtx.DB, user_models.FriendModel{}, list_quary.Option{
+		PageInfo: models.PageInfo{
+			Page:  req.Page,
+			Limit: req.Limit,
+		},
+		Preload: []string{"SendUserModel", "RevUserModel"},
+	})
+
 	var list []types.FriendInfoResponse
 	for _, friend := range friends {
 		info := types.FriendInfoResponse{}
