@@ -32,6 +32,10 @@ func ListQuery[T any](db *gorm.DB, model T, option Option) (list []T, count int6
 		query.Where(likeQuery)
 	}
 
+	if option.Where != nil {
+		query = query.Where(option.Where)
+	}
+
 	// 求总数
 	query.Model(model).Count(&count)
 
