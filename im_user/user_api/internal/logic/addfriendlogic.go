@@ -68,11 +68,28 @@ func (l *AddFriendLogic) AddFriend(req *types.AddFriendRequest) (resp *types.Add
 	case 4: // 需要回答问题, 需要正确回答问题
 		// 判断问题是否回答正确
 		if req.VerificationQuestion != nil && userConf.VerificationQuestion != nil {
-			if req.VerificationQuestion.Answer1 != userConf.VerificationQuestion.Answer1 ||
-				req.VerificationQuestion.Answer2 != userConf.VerificationQuestion.Answer2 ||
-				req.VerificationQuestion.Answer3 != userConf.VerificationQuestion.Answer3 {
+			// 需要考虑到一个问题/两个问题/三个问题的情况
+			var count int
+			if req.VerificationQuestion.Answer1 != nil && userConf.VerificationQuestion.Answer1 != nil {
+				if *req.VerificationQuestion.Answer1 == *userConf.VerificationQuestion.Answer1 {
+					count++
+				}
+			}
+			if req.VerificationQuestion.Answer2 != nil && userConf.VerificationQuestion.Answer2 != nil {
+				if *req.VerificationQuestion.Answer2 == *userConf.VerificationQuestion.Answer2 {
+					count++
+				}
+			}
+			if req.VerificationQuestion.Answer3 != nil && userConf.VerificationQuestion.Answer3 != nil {
+				if *req.VerificationQuestion.Answer3 == *userConf.VerificationQuestion.Answer3 {
+					count++
+				}
+			}
+
+			if count != userConf.ProblemCount() {
 				return nil, errors.New("答案错误")
 			}
+
 			// 直接添加好友
 			VerifyModel.Status = 1
 			VerifyModel.VerificationQuestion = userConf.VerificationQuestion
@@ -84,7 +101,7 @@ func (l *AddFriendLogic) AddFriend(req *types.AddFriendRequest) (resp *types.Add
 			l.svcCtx.DB.Create(&userFriend)
 		}
 	default:
-
+		return nil, errors.New("不支持的验证参数")
 	}
 	err = l.svcCtx.DB.Create(&VerifyModel).Error
 	if err != nil {

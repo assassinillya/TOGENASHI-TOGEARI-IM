@@ -21,11 +21,18 @@ type UserConfModel struct {
 	Online               bool                        `json:"online"`                       //是否在线
 }
 
-type VerificationQuestion struct {
-	Problem1 *string `json:"problem1"`
-	Problem2 *string `json:"problem2"`
-	Problem3 *string `json:"problem3"`
-	Answer1  *string `json:"answer1"`
-	Answer2  *string `json:"answer2"`
-	Answer3  *string `json:"answer3"`
+// ProblemCount 问题的个数
+func (uc UserConfModel) ProblemCount() (c int) {
+	if uc.VerificationQuestion != nil {
+		if uc.VerificationQuestion.Problem1 != nil {
+			c++
+		}
+		if uc.VerificationQuestion.Problem2 != nil {
+			c++
+		}
+		if uc.VerificationQuestion.Problem3 != nil {
+			c++
+		}
+	}
+	return
 }
