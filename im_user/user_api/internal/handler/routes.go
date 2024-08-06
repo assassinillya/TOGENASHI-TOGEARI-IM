@@ -57,6 +57,11 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Path:    "/api/user/valid",
 				Handler: userValidListHandler(serverCtx),
 			},
+			{
+				Method:  http.MethodPut,
+				Path:    "/api/user/valid_status",
+				Handler: validStatusHandler(serverCtx),
+			},
 		},
 	)
 }

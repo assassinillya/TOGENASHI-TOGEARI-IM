@@ -54,6 +54,7 @@ type FriendValidInfo struct {
 	VerificationQuestion *VerificationQuestion `json:"verificationQuestion"` // 验证问题 为3/4的时候需要回答
 	Status               int8                  `json:"status"`               // 状态 0:未操作 1:同意 2:拒绝 3:忽略
 	Verification         int8                  `json:"verification"`         // 好友验证
+	ID                   uint                  `json:"id"`                   // 验证记录的id
 }
 
 type FriendValidRequest struct {
@@ -65,6 +66,12 @@ type FriendValidRequest struct {
 type FriendValidResponse struct {
 	List  []FriendValidInfo `json:"list"`
 	Count int64             `json:"count"`
+}
+
+type FriendValidStatusRequest struct {
+	UserID   uint `header:"User-ID"`
+	VerifyID uint `json:"verifyID"`
+	Status   int8 `json:"status"` // 状态 0:未操作 1:同意 2:拒绝 3:忽略 4:删除
 }
 
 type SearchInfo struct {

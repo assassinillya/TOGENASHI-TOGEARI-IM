@@ -29,12 +29,13 @@ func NewUserValidListLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Use
 func (l *UserValidListLogic) UserValidList(req *types.FriendValidRequest) (resp *types.FriendValidResponse, err error) {
 
 	fvs, count, _ := list_quary.ListQuery(l.svcCtx.DB, user_models.FriendVerifyModel{
-		SendUserID: req.UserID,
+		RevUserID: req.UserID,
 	}, list_quary.Option{
 		PageInfo: models.PageInfo{
 			Page:  req.Page,
 			Limit: req.Limit,
 		},
+		Where:   l.svcCtx.DB.Where("send_user_id = ? or rev_user_id = ?", req.UserID, req.UserID),
 		Preload: []string{"RevUserModel.UserConfModel"},
 	})
 
@@ -47,6 +48,7 @@ func (l *UserValidListLogic) UserValidList(req *types.FriendValidRequest) (resp 
 			AdditionalMessages: fv.AdditionalMessages,
 			Status:             fv.Status,
 			Verification:       fv.RevUserModel.UserConfModel.Verification,
+			ID:                 fv.ID,
 		}
 		if fv.VerificationQuestion != nil {
 			info.VerificationQuestion = &types.VerificationQuestion{
