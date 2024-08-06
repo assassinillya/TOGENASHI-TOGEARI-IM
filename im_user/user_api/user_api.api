@@ -135,6 +135,7 @@ type FriendValidInfo {
 	Status               int8                  `json:"status"` // 状态 0:未操作 1:同意 2:拒绝 3:忽略
 	Verification         int8                  `json:"verification"` // 好友验证
 	ID                   uint                  `json:"id"` // 验证记录的id
+	Flag                 string                `json:"flag"` // send 我是发起方 rev 我是接收方
 }
 
 type FriendValidResponse {

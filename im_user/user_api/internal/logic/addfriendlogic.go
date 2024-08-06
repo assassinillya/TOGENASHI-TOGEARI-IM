@@ -51,7 +51,7 @@ func (l *AddFriendLogic) AddFriend(req *types.AddFriendRequest) (resp *types.Add
 	case 1: // 允许任何人添加
 		// 直接添加好友
 		// 先往验证表中添加一条记录, 然后通过
-		VerifyModel.Status = 1
+		VerifyModel.RevStatus = 1
 	case 2: // 需要验证问题
 	case 3: // 需要回答问题, 不需要正确回答问题
 		if req.VerificationQuestion != nil {
@@ -91,7 +91,7 @@ func (l *AddFriendLogic) AddFriend(req *types.AddFriendRequest) (resp *types.Add
 			}
 
 			// 直接添加好友
-			VerifyModel.Status = 1
+			VerifyModel.RevStatus = 1
 			VerifyModel.VerificationQuestion = userConf.VerificationQuestion
 			// 添加好友
 			var userFriend = user_models.FriendModel{
