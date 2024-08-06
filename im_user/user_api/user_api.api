@@ -83,9 +83,9 @@ type FriendNoticeUpdateResponse {}
 type SearchRequest {
 	Page   int    `form:"page,optional"`
 	Limit  int    `form:"limit,optional"`
-	Key    string `form:"key"` // 用户id和昵称
+	Key    string `form:"key,optional"` // 用户id和昵称
 	UserID uint   `header:"User-ID"`
-	Online bool   `form:"online"` // 是否在线
+	Online bool   `form:"online,optional"` // 是否在线
 }
 
 type SearchInfo {
@@ -111,6 +111,15 @@ type UserValidResponse {
 	VerificationQuestion VerificationQuestion `json:"verificationQuestion"` // 问题和答案, 注意不要暴露答案
 }
 
+type AddFriendRequest {
+	UserID               uint                  `header:"User-ID"`
+	FriendID             uint                  `json:"friendID"`
+	Verify               string                `json:"verify,optional"` // 验证消息
+	VerificationQuestion *VerificationQuestion `json:"verificationQuestion,optional"` // 问题和答案
+}
+
+type AddFriendResponse {}
+
 service users {
 	@handler UserInfo
 	get /api/user/user_info (UserInfoRequest) returns (UserInfoResponse) // 用户信息接口
@@ -128,9 +137,12 @@ service users {
 	put /api/user/friends (FriendNoticeUpdateRequest) returns (FriendNoticeUpdateResponse) //获取好友列表
 
 	@handler search
-	get /api/user/search (SearchRequest) returns (SearchResponse)
+	get /api/user/search (SearchRequest) returns (SearchResponse) // 搜索用户
 
 	@handler userValid
 	post /api/user/valid (UserValidRequest) returns (UserValidResponse) // 好友验证
+
+	@handler addFriend
+	post /api/user/friends (AddFriendRequest) returns (AddFriendResponse) // 添加好友
 } // 在此文件夹下运行 goctl api go -api user_api.api -dir . --home ../../template
 
