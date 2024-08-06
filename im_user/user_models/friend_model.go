@@ -24,6 +24,11 @@ func (f *FriendModel) IsFriend(db *gorm.DB, A, B uint) bool {
 	return true
 }
 
+func (f *FriendModel) Friends(db *gorm.DB, userID uint) (list []FriendModel) {
+	db.Find(&list, "send_user_id = ? or rev_user_id = ?", userID, userID)
+	return list
+}
+
 func (f *FriendModel) GetUserNotice(userID uint) string {
 	if userID == f.SendUserID {
 		// 如果我是发起方

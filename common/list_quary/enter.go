@@ -9,6 +9,7 @@ import (
 type Option struct {
 	PageInfo models.PageInfo
 	Where    *gorm.DB // 高级查询
+	Joins    string
 	Likes    []string // 模糊匹配的字段
 	Preload  []string // 预加载字段
 }
@@ -30,6 +31,10 @@ func ListQuery[T any](db *gorm.DB, model T, option Option) (list []T, count int6
 			}
 		}
 		query.Where(likeQuery)
+	}
+
+	if option.Joins != "" {
+		query = query.Joins(option.Joins)
 	}
 
 	if option.Where != nil {
