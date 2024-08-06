@@ -11,6 +11,14 @@ type AddFriendRequest struct {
 type AddFriendResponse struct {
 }
 
+type FriendDeleteRequest struct {
+	UserID   uint `header:"User-ID"`
+	FriendID uint `json:"friendID"`
+}
+
+type FriendDeleteResponse struct {
+}
+
 type FriendInfoRequest struct {
 	UserID   uint `header:"User-ID"`
 	Role     int8 `header:"Role"`
