@@ -101,6 +101,16 @@ type SearchResponse {
 	Count int64        `json:"count"`
 }
 
+type UserValidRequest {
+	UserID   uint `header:"User-ID"`
+	FriendID uint `json:"friendID"`
+}
+
+type UserValidResponse {
+	Verification         int8                 `json:"verification"` // 好友验证
+	VerificationQuestion VerificationQuestion `json:"verificationQuestion"` // 问题和答案, 注意不要暴露答案
+}
+
 service users {
 	@handler UserInfo
 	get /api/user/user_info (UserInfoRequest) returns (UserInfoResponse) // 用户信息接口
@@ -119,5 +129,8 @@ service users {
 
 	@handler search
 	get /api/user/search (SearchRequest) returns (SearchResponse)
+
+	@handler userValid
+	post /api/user/valid (UserValidRequest) returns (UserValidResponse) // 好友验证
 } // 在此文件夹下运行 goctl api go -api user_api.api -dir . --home ../../template
 

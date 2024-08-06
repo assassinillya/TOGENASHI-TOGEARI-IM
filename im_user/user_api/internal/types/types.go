@@ -95,6 +95,16 @@ type UserInfoUpdateRequest struct {
 type UserInfoUpdateResponse struct {
 }
 
+type UserValidRequest struct {
+	UserID   uint `header:"User-ID"`
+	FriendID uint `json:"friendID"`
+}
+
+type UserValidResponse struct {
+	Verification         int8                 `json:"verification"`         // 好友验证
+	VerificationQuestion VerificationQuestion `json:"verificationQuestion"` // 问题和答案, 注意不要暴露答案
+}
+
 type VerificationQuestion struct {
 	Problem1 *string `json:"problem1,optional" user_conf:"problem1"`
 	Problem2 *string `json:"problem2,optional" user_conf:"problem2"`
