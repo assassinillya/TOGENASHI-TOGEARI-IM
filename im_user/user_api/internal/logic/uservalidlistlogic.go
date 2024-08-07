@@ -28,9 +28,7 @@ func NewUserValidListLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Use
 
 func (l *UserValidListLogic) UserValidList(req *types.FriendValidRequest) (resp *types.FriendValidResponse, err error) {
 
-	fvs, count, _ := list_quary.ListQuery(l.svcCtx.DB, user_models.FriendVerifyModel{
-		RevUserID: req.UserID,
-	}, list_quary.Option{
+	fvs, count, _ := list_quary.ListQuery(l.svcCtx.DB, user_models.FriendVerifyModel{}, list_quary.Option{
 		PageInfo: models.PageInfo{
 			Page:  req.Page,
 			Limit: req.Limit,

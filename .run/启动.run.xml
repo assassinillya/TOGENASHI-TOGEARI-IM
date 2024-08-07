@@ -6,6 +6,7 @@
     <toRun name="4_file" type="GoApplicationRunConfiguration" />
     <toRun name="5_auth" type="GoApplicationRunConfiguration" />
     <toRun name="6_settings" type="GoApplicationRunConfiguration" />
+    <toRun name="7_chat" type="GoApplicationRunConfiguration" />
     <method v="2" />
   </configuration>
 </component>

@@ -50,3 +50,18 @@ func GetFilePrefix(fileName string) (prefix string) {
 	}
 	return prefix
 }
+
+// DeduplicationList 去重
+func DeduplicationList[T string | int | uint | uint32](req []T) (response []T) {
+	Map := make(map[T]bool)
+	for _, val := range req {
+		if !Map[val] {
+			Map[val] = true
+		}
+	}
+	response = make([]T, 0)
+	for key, _ := range Map {
+		response = append(response, key)
+	}
+	return
+}

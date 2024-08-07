@@ -60,39 +60,42 @@ func (l *UserInfoUpdateLogic) UserInfoUpdate(req *types.UserInfoUpdateRequest) (
 			data := ctype.VerificationQuestion{}
 			maps.MapToStruct(verificationQuestion.(map[string]any), &data)
 
-			//if val, ok := verificationQuestion.(map[string]any)["problem1"]; ok {
-			//	s := val.(string)
-			//	data.Problem1 = &s
-			//}
-			//if val, ok := verificationQuestion.(map[string]any)["problem2"]; ok {
-			//	s := val.(string)
-			//	data.Problem2 = &s
-			//}
-			//if val, ok := verificationQuestion.(map[string]any)["problem3"]; ok {
-			//	s := val.(string)
-			//	data.Problem3 = &s
-			//}
-			//if val, ok := verificationQuestion.(map[string]any)["answer1"]; ok {
-			//	s := val.(string)
-			//	data.Answer1 = &s
-			//}
-			//if val, ok := verificationQuestion.(map[string]any)["answer2"]; ok {
-			//	s := val.(string)
-			//	data.Answer2 = &s
-			//}
-			//if val, ok := verificationQuestion.(map[string]any)["answer3"]; ok {
-			//	s := val.(string)
-			//	data.Answer3 = &s
-			//}
-			l.svcCtx.DB.Model(&userConf).Updates(&user_models.UserConfModel{
+			if val, ok := verificationQuestion.(map[string]any)["problem1"]; ok {
+				s := val.(string)
+				data.Problem1 = &s
+			}
+			if val, ok := verificationQuestion.(map[string]any)["problem2"]; ok {
+				s := val.(string)
+				data.Problem2 = &s
+			}
+			if val, ok := verificationQuestion.(map[string]any)["problem3"]; ok {
+				s := val.(string)
+				data.Problem3 = &s
+			}
+			if val, ok := verificationQuestion.(map[string]any)["answer1"]; ok {
+				s := val.(string)
+				data.Answer1 = &s
+			}
+			if val, ok := verificationQuestion.(map[string]any)["answer2"]; ok {
+				s := val.(string)
+				data.Answer2 = &s
+			}
+			if val, ok := verificationQuestion.(map[string]any)["answer3"]; ok {
+				s := val.(string)
+				data.Answer3 = &s
+			}
+			err = l.svcCtx.DB.Model(&userConf).Updates(&user_models.UserConfModel{
 				VerificationQuestion: &data,
-			})
+			}).Error
+			if err != nil {
+				logx.Error("更新用户配置Q&A信息失败")
+				return nil, errors.New("更新用户配置Q&A信息失败")
+			}
 		}
 
 		err = l.svcCtx.DB.Model(&userConf).Updates(userConfMaps).Error
 		if err != nil {
-			logx.Error(userConfMaps)
-			logx.Error(err)
+			logx.Error("用户配置更新失败")
 			return nil, errors.New("用户配置更新失败")
 		}
 	}
