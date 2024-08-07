@@ -24,9 +24,23 @@ message UserInfoResponse {
   bytes data = 1; // 用户和用户配置信息的json
 }
 
+message UserInfo{
+  string nick_name = 1;
+  string avatar = 2;
+}
+
+message UserListInfoRequest {
+  repeated uint32 user_id_list = 1;// 用户id列表
+}
+
+message UserListInfoResponse {
+  map<uint32, UserInfo> user_info = 1;// 用户信息
+}
+
 service Users {
   rpc UserCreate(UserCreateRequest) returns(UserCreateResponse); // 创建用户
   rpc UserInfo(UserInfoRequest) returns(UserInfoResponse); // 用户信息
+  rpc UserListInfo(UserListInfoRequest) returns(UserListInfoResponse);// 用户列表信息
 }
 
 

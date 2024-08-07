@@ -2,12 +2,14 @@ package logic
 
 import (
 	"context"
+	"errors"
 	"im_server/common/list_quary"
 	"im_server/common/models"
 	"im_server/common/models/ctype"
 	"im_server/im_chat/chat_api/internal/svc"
 	"im_server/im_chat/chat_api/internal/types"
 	"im_server/im_chat/chat_models"
+	"im_server/im_user/user_rpc/types/user_rpc"
 	"im_server/utils"
 
 	"github.com/zeromicro/go-zero/core/logx"
@@ -54,28 +56,57 @@ func (l *ChatHistoryLogic) ChatHistory(req *types.ChatHistoryRequest) (resp *Cha
 		PageInfo: models.PageInfo{
 			Page:  req.Page,
 			Limit: req.Limit,
+			Sort:  "created_at desc",
 		},
 		Where: l.svcCtx.DB.Where("send_user_id = ? or rev_user_id = ?", req.UserID, req.UserID),
 	})
 
-	var userIDList []uint
+	var userIDList []uint32
 	for _, model := range chatList {
-		userIDList = append(userIDList, model.SendUserID)
-		userIDList = append(userIDList, model.RevUserID)
+		userIDList = append(userIDList, uint32(model.SendUserID))
+		userIDList = append(userIDList, uint32(model.RevUserID))
 	}
 
 	// 去重
 	userIDList = utils.DeduplicationList(userIDList)
 	// 去调用户服务的rpc接口, 获取用户信息 { 用户id: {用户信息} }
+	response, err := l.svcCtx.UserRpc.UserListInfo(context.Background(), &user_rpc.UserListInfoRequest{
+		UserIdList: userIDList,
+	})
+
+	if err != nil {
+		logx.Error(err)
+		return nil, errors.New("用户服务错误")
+	}
 
 	var list = make([]ChatHistory, 0)
 	for _, model := range chatList {
-		list = append(list, ChatHistory{
+
+		sendUser := UserInfo{
+			ID:       model.SendUserID,
+			Nickname: response.UserInfo[uint32(model.SendUserID)].NickName,
+			Avatar:   response.UserInfo[uint32(model.SendUserID)].Avatar,
+		}
+
+		revUser := UserInfo{
+			ID:       model.RevUserID,
+			Nickname: response.UserInfo[uint32(model.RevUserID)].NickName,
+			Avatar:   response.UserInfo[uint32(model.RevUserID)].Avatar,
+		}
+		info := ChatHistory{
 			ID:        model.ID,
 			CreatedAt: model.CreatedAt.String(),
+			SendUser:  sendUser,
+			RevUser:   revUser,
 			Msg:       model.Msg,
 			SystemMsg: model.SystemMsg,
-		})
+		}
+
+		if info.SendUser.ID == req.UserID {
+			info.IsMe = true
+		}
+
+		list = append(list, info)
 	}
 
 	resp = &ChatHistoryResponse{

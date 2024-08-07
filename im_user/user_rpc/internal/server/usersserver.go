@@ -31,3 +31,8 @@ func (s *UsersServer) UserInfo(ctx context.Context, in *user_rpc.UserInfoRequest
 	l := logic.NewUserInfoLogic(ctx, s.svcCtx)
 	return l.UserInfo(in)
 }
+
+func (s *UsersServer) UserListInfo(ctx context.Context, in *user_rpc.UserListInfoRequest) (*user_rpc.UserListInfoResponse, error) {
+	l := logic.NewUserListInfoLogic(ctx, s.svcCtx)
+	return l.UserListInfo(in)
+}
