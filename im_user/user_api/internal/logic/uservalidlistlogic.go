@@ -2,7 +2,7 @@ package logic
 
 import (
 	"context"
-	"im_server/common/list_quary"
+	"im_server/common/list_query"
 	"im_server/common/models"
 	"im_server/im_user/user_models"
 
@@ -28,7 +28,7 @@ func NewUserValidListLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Use
 
 func (l *UserValidListLogic) UserValidList(req *types.FriendValidRequest) (resp *types.FriendValidResponse, err error) {
 
-	fvs, count, _ := list_quary.ListQuery(l.svcCtx.DB, user_models.FriendVerifyModel{}, list_quary.Option{
+	fvs, count, _ := list_query.ListQuery(l.svcCtx.DB, user_models.FriendVerifyModel{}, list_query.Option{
 		PageInfo: models.PageInfo{
 			Page:  req.Page,
 			Limit: req.Limit,

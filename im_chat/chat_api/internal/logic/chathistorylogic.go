@@ -3,7 +3,7 @@ package logic
 import (
 	"context"
 	"errors"
-	"im_server/common/list_quary"
+	"im_server/common/list_query"
 	"im_server/common/models"
 	"im_server/common/models/ctype"
 	"im_server/im_chat/chat_api/internal/svc"
@@ -52,7 +52,7 @@ type ChatHistoryResponse struct {
 
 func (l *ChatHistoryLogic) ChatHistory(req *types.ChatHistoryRequest) (resp *ChatHistoryResponse, err error) {
 
-	chatList, count, _ := list_quary.ListQuery(l.svcCtx.DB, chat_models.ChatModel{}, list_quary.Option{
+	chatList, count, _ := list_query.ListQuery(l.svcCtx.DB, chat_models.ChatModel{}, list_query.Option{
 		PageInfo: models.PageInfo{
 			Page:  req.Page,
 			Limit: req.Limit,

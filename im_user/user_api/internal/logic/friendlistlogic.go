@@ -2,7 +2,7 @@ package logic
 
 import (
 	"context"
-	"im_server/common/list_quary"
+	"im_server/common/list_query"
 	"im_server/common/models"
 	"im_server/im_user/user_models"
 
@@ -49,7 +49,7 @@ func (l *FriendListLogic) FriendList(req *types.FriendListRequest) (resp *types.
 	//	Offset(offset).
 	//	Find(&friends, "send_user_id = ? or rev_user_id = ?", req.UserID, req.UserID)
 
-	friends, count, _ := list_quary.ListQuery(l.svcCtx.DB, user_models.FriendModel{}, list_quary.Option{
+	friends, count, _ := list_query.ListQuery(l.svcCtx.DB, user_models.FriendModel{}, list_query.Option{
 		PageInfo: models.PageInfo{
 			Page:  req.Page,
 			Limit: req.Limit,

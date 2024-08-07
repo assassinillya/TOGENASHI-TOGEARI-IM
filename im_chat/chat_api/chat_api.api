@@ -2,8 +2,8 @@ syntax = "v1"
 
 type ChatHistoryRequest {
 	UserID uint `header:"User-ID"`
-	page   int  `form:"page"`
-	limit  int  `form:"limit"`
+	page   int  `form:"page,optional"`
+	limit  int  `form:"limit,optional"`
 }
 
 type ChatHistoryResponse {
@@ -16,17 +16,22 @@ type ChatHistoryResponse {
 
 type ChatSessionRequest {
 	UserID uint   `header:"User-ID"`
-	page   int    `form:"page"`
-	limit  int    `form:"limit"`
-	Key    string `form:"key"`
+	page   int    `form:"page,optional"`
+	limit  int    `form:"limit,optional"`
+	Key    string `form:"key,optional"`
 }
 
-type ChatSessionResponse {
+type ChatSession {
 	UserID     uint   `json:"userID"`
 	Avatar     string `json:"avatar"`
 	Nickname   string `json:"nickname"`
 	CreatedAt  string `json:"createdAt"` // 消息时间
 	MsgPreview string `json:"msgPreview"` // 消息预览
+}
+
+type ChatSessionResponse {
+	List  []ChatSession `json:"list"`
+	Count int64         `json:"count"`
 }
 
 service chat {

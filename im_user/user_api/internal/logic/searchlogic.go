@@ -3,7 +3,7 @@ package logic
 import (
 	"context"
 	"fmt"
-	"im_server/common/list_quary"
+	"im_server/common/list_query"
 	"im_server/common/models"
 	"im_server/im_user/user_models"
 
@@ -29,9 +29,9 @@ func NewSearchLogic(ctx context.Context, svcCtx *svc.ServiceContext) *SearchLogi
 
 func (l *SearchLogic) Search(req *types.SearchRequest) (resp *types.SearchResponse, err error) {
 	// 先找所有的用户
-	users, count, _ := list_quary.ListQuery(l.svcCtx.DB, user_models.UserConfModel{
+	users, count, _ := list_query.ListQuery(l.svcCtx.DB, user_models.UserConfModel{
 		Online: req.Online,
-	}, list_quary.Option{
+	}, list_query.Option{
 		PageInfo: models.PageInfo{
 			Page:  req.Page,
 			Limit: req.Limit,

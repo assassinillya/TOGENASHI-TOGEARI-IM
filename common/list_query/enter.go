@@ -1,7 +1,8 @@
-package list_quary
+package list_query
 
 import (
 	"fmt"
+	"github.com/zeromicro/go-zero/core/logx"
 	"gorm.io/gorm"
 	"im_server/common/models"
 )
@@ -11,7 +12,7 @@ type Option struct {
 	Where    *gorm.DB // 高级查询
 	Joins    string
 	Likes    []string             // 模糊匹配的字段
-	Preload  []string             // 预加载字段
+	Preloads []string             // 预加载字段
 	Table    func() (string, any) // 实现子查询
 	Groups   []string             // 分组
 }
@@ -58,7 +59,7 @@ func ListQuery[T any](db *gorm.DB, model T, option Option) (list []T, count int6
 	query.Model(model).Count(&count)
 
 	// 预加载
-	for _, s := range option.Preload {
+	for _, s := range option.Preloads {
 		query = query.Preload(s)
 	}
 
@@ -78,5 +79,8 @@ func ListQuery[T any](db *gorm.DB, model T, option Option) (list []T, count int6
 	}
 
 	err = query.Limit(option.PageInfo.Limit).Offset(offset).Find(&list).Error
+	if err != nil {
+		logx.Error(err)
+	}
 	return
 }
