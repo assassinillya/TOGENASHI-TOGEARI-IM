@@ -10,8 +10,10 @@ type Option struct {
 	PageInfo models.PageInfo
 	Where    *gorm.DB // 高级查询
 	Joins    string
-	Likes    []string // 模糊匹配的字段
-	Preload  []string // 预加载字段
+	Likes    []string             // 模糊匹配的字段
+	Preload  []string             // 预加载字段
+	Table    func() (string, any) // 实现子查询
+	Groups   []string             // 分组
 }
 
 func ListQuery[T any](db *gorm.DB, model T, option Option) (list []T, count int64, err error) {
@@ -33,12 +35,23 @@ func ListQuery[T any](db *gorm.DB, model T, option Option) (list []T, count int6
 		query.Where(likeQuery)
 	}
 
+	if option.Table != nil {
+		table, data := option.Table()
+		query = query.Table(table, data)
+	}
+
 	if option.Joins != "" {
 		query = query.Joins(option.Joins)
 	}
 
 	if option.Where != nil {
 		query = query.Where(option.Where)
+	}
+
+	if len(option.Groups) > 0 {
+		for _, group := range option.Groups {
+			query = query.Group(group)
+		}
 	}
 
 	// 求总数

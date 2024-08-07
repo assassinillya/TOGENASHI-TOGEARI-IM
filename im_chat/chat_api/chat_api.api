@@ -14,8 +14,26 @@ type ChatHistoryResponse {
 	CreatedAt string `json:"createdAt"`
 }
 
+type ChatSessionRequest {
+	UserID uint   `header:"User-ID"`
+	page   int    `form:"page"`
+	limit  int    `form:"limit"`
+	Key    string `form:"key"`
+}
+
+type ChatSessionResponse {
+	UserID     uint   `json:"userID"`
+	Avatar     string `json:"avatar"`
+	Nickname   string `json:"nickname"`
+	CreatedAt  string `json:"createdAt"` // 消息时间
+	MsgPreview string `json:"msgPreview"` // 消息预览
+}
+
 service chat {
 	@handler chatHistory
 	get /api/chat/history (ChatHistoryRequest) returns (ChatHistoryResponse) // 聊天记录
+
+	@handler chatSession
+	get /api/chat/session (ChatSessionRequest) returns (ChatSessionResponse) // 最近会话列表
 } // 在此文件夹下运行 goctl api go -api chat_api.api -dir . --home ../../template
 
