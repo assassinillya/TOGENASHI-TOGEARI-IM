@@ -33,8 +33,8 @@ func (l *UserValidListLogic) UserValidList(req *types.FriendValidRequest) (resp 
 			Page:  req.Page,
 			Limit: req.Limit,
 		},
-		Where:   l.svcCtx.DB.Where("send_user_id = ? or rev_user_id = ?", req.UserID, req.UserID),
-		Preload: []string{"RevUserModel.UserConfModel", "SendUserModel.UserConfModel"},
+		Where:    l.svcCtx.DB.Where("send_user_id = ? or rev_user_id = ?", req.UserID, req.UserID),
+		Preloads: []string{"RevUserModel.UserConfModel", "SendUserModel.UserConfModel"},
 	})
 
 	var list []types.FriendValidInfo

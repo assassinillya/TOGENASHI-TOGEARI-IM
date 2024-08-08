@@ -28,33 +28,13 @@ func NewFriendListLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Friend
 
 func (l *FriendListLogic) FriendList(req *types.FriendListRequest) (resp *types.FriendListResponse, err error) {
 
-	//var count int64
-	//l.svcCtx.DB.
-	//	Model(&user_models.FriendModel{}).
-	//	Where("send_user_id = ? or rev_user_id = ?", req.UserID, req.UserID).
-	//	Count(&count)
-	//var friends []user_models.FriendModel
-	//if req.Limit <= 0 {
-	//	req.Limit = 10
-	//}
-	//if req.Page <= 0 {
-	//	req.Page = 1
-	//}
-	//offset := (req.Page - 1) * req.Limit
-	//
-	//l.svcCtx.DB.
-	//	Preload("SendUserModel").
-	//	Preload("RevUserModel").
-	//	Limit(req.Limit).
-	//	Offset(offset).
-	//	Find(&friends, "send_user_id = ? or rev_user_id = ?", req.UserID, req.UserID)
-
 	friends, count, _ := list_query.ListQuery(l.svcCtx.DB, user_models.FriendModel{}, list_query.Option{
 		PageInfo: models.PageInfo{
 			Page:  req.Page,
 			Limit: req.Limit,
 		},
-		Preload: []string{"SendUserModel", "RevUserModel"},
+		Where:    l.svcCtx.DB.Where("send_user_id = ? or rev_user_id = ?", req.UserID, req.UserID),
+		Preloads: []string{"SendUserModel", "RevUserModel"},
 	})
 
 	var list []types.FriendInfoResponse

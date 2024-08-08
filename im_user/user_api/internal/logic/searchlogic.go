@@ -36,8 +36,8 @@ func (l *SearchLogic) Search(req *types.SearchRequest) (resp *types.SearchRespon
 			Page:  req.Page,
 			Limit: req.Limit,
 		},
-		Preload: []string{"UserModel"},
-		Joins:   "left join user_models um on um.id = user_conf_models.user_id",
+		Preloads: []string{"UserModel"},
+		Joins:    "left join user_models um on um.id = user_conf_models.user_id",
 		Where: l.svcCtx.DB.Where(
 			"(user_conf_models.search_user <> 0 or user_conf_models.search_user is not null) and (user_conf_models.search_user = 1 and um.id = ?) or (user_conf_models.search_user = 2 and (um.id = ? or um.nickname like ?))",
 			req.Key, req.Key, fmt.Sprintf("%%%s%%", req.Key)),

@@ -7,8 +7,9 @@ import (
 )
 
 type Msg struct {
-	Type         int8          `json:"type"`         //消息类型 和 MsgType 一样
-	Content      *string       `json:"content"`      //为1时使用
+	Type         int8          `json:"type"`         // 消息类型 和 MsgType 一样
+	Content      *string       `json:"content"`      // 为1时使用
+	TextMsg      *TextMsg      `json:"textMsg"`      // 文本消息
 	ImageMsg     *ImageMsg     `json:"imageMsg"`     // 图片消息
 	VideoMsg     *VideoMsg     `json:"videoMsg"`     // 视频消息
 	FileMsg      *FileMsg      `json:"fileMsg"`      // 文件消息
@@ -30,6 +31,10 @@ func (c *Msg) Scan(val interface{}) error {
 func (c *Msg) Value() (driver.Value, error) {
 	b, err := json.Marshal(c)
 	return string(b), err
+}
+
+type TextMsg struct {
+	Content string `json:"content"`
 }
 
 type ImageMsg struct {
