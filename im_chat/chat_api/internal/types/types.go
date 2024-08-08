@@ -37,6 +37,14 @@ type ChatSessionResponse struct {
 	Count int64         `json:"count"`
 }
 
+type ChatDeleteRequest struct {
+	UserID uint   `header:"User-ID"`
+	IdList []uint `json:"idList"`
+}
+
+type ChatDeleteResponse struct {
+}
+
 type UserTopRequest struct {
 	UserID   uint `header:"User-ID"`
 	FriendID uint `json:"friendID"`

@@ -50,9 +50,10 @@ func (l *ChatSessionLogic) ChatSession(req *types.ChatSessionRequest) (resp *typ
 				Select("least(send_user_id, rev_user_id) as sU",
 					" greatest(send_user_id, rev_user_id) as rU",
 					"max(created_at) as maxDate",
-					"(select msg_preview from chat_models where (send_user_id = sU and rev_user_id = rU) or (send_user_id = rU and rev_user_id = sU) order by created_at desc limit 1 ) as maxPreview",
+					fmt.Sprintf("(select msg_preview from chat_models where ((send_user_id = sU and rev_user_id = rU) or (send_user_id = rU and rev_user_id = sU)) and  id not in (select chat_id from user_chat_delete_models where user_id = %d)  order by created_at desc limit 1 ) as maxPreview", req.UserID),
 					column).
-				Where("send_user_id = ? or rev_user_id = ?", req.UserID, req.UserID).
+				Where("(send_user_id = ? or rev_user_id = ?) and id not in (select chat_id from user_chat_delete_models where user_id = ?)",
+					req.UserID, req.UserID, req.UserID).
 				Group("least(send_user_id, rev_user_id)").
 				Group("greatest(send_user_id, rev_user_id)")
 		},
