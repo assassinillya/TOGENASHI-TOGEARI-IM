@@ -5,30 +5,29 @@ import (
 	"encoding/json"
 	"im_server/common/models/ctype"
 	"im_server/im_chat/chat_models"
-
 	"im_server/im_chat/chat_rpc/internal/svc"
 	"im_server/im_chat/chat_rpc/types/chat_rpc"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
-type UserCreateLogic struct {
+type UserChatLogic struct {
 	ctx    context.Context
 	svcCtx *svc.ServiceContext
 	logx.Logger
 }
 
-func NewUserCreateLogic(ctx context.Context, svcCtx *svc.ServiceContext) *UserCreateLogic {
-	return &UserCreateLogic{
+func NewUserChatLogic(ctx context.Context, svcCtx *svc.ServiceContext) *UserChatLogic {
+	return &UserChatLogic{
 		ctx:    ctx,
 		svcCtx: svcCtx,
 		Logger: logx.WithContext(ctx),
 	}
 }
 
-func (l *UserCreateLogic) UserCreate(in *chat_rpc.UserChatRequest) (*chat_rpc.UserChatResponse, error) {
+func (l *UserChatLogic) UserChat(in *chat_rpc.UserChatRequest) (*chat_rpc.UserChatResponse, error) {
 
-	var msg ctype.Msg
+	var msg *ctype.Msg
 	err := json.Unmarshal(in.Msg, &msg)
 	if err != nil {
 		logx.Error(err)
@@ -36,20 +35,24 @@ func (l *UserCreateLogic) UserCreate(in *chat_rpc.UserChatRequest) (*chat_rpc.Us
 	}
 
 	var systemMsg *ctype.SystemMsg
-	err = json.Unmarshal(in.SystemMsg, &systemMsg)
-	if err != nil {
-		logx.Error(err)
-		return nil, err
+
+	if in.SystemMsg != nil {
+		err = json.Unmarshal(in.SystemMsg, &systemMsg)
+		if err != nil {
+			logx.Error(err)
+			return nil, err
+		}
 	}
 
-	err = l.svcCtx.DB.Create(&chat_models.ChatModel{
+	chat := &chat_models.ChatModel{
 		SendUserID: uint(in.SendUserId),
 		RevUserID:  uint(in.RevUserId),
 		MsgType:    msg.Type,
-		MsgPreView: "", //todo 写个方法获取
-		Msg:        msg,
-		SystemMsg:  systemMsg,
-	}).Error
+		//MsgPreView: "", //todo 写个方法获取
+		Msg:       msg,
+		SystemMsg: systemMsg,
+	}
+	err = l.svcCtx.DB.Create(&chat).Error
 
 	if err != nil {
 		logx.Error(err)

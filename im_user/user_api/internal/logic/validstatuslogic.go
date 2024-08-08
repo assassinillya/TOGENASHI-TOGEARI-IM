@@ -2,7 +2,10 @@ package logic
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"im_server/common/models/ctype"
+	"im_server/im_chat/chat_rpc/chat"
 	"im_server/im_user/user_models"
 
 	"im_server/im_user/user_api/internal/svc"
@@ -46,6 +49,25 @@ func (l *ValidStatusLogic) ValidStatus(req *types.FriendValidStatusRequest) (res
 			RevUserID:  friendVerify.RevUserID,
 			SendUserID: friendVerify.SendUserID,
 		})
+
+		msg := ctype.Msg{
+			TextMsg: &ctype.TextMsg{
+				Content: "我们已经是好友了，开始聊天吧！",
+			},
+		}
+		byteData, _ := json.Marshal(msg)
+
+		// 给对方发个消息
+		_, err = l.svcCtx.ChatRpc.UserChat(context.Background(), &chat.UserChatRequest{
+			SendUserId: uint32(friendVerify.SendUserID),
+			RevUserId:  uint32(friendVerify.RevUserID),
+			Msg:        byteData,
+			SystemMsg:  nil,
+		})
+
+		if err != nil {
+			logx.Error(err)
+		}
 	case 2: // 拒绝
 		friendVerify.RevStatus = 2
 	case 3: // 忽略

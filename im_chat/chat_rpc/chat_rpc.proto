@@ -11,14 +11,13 @@ message UserChatRequest {
 }
 
 message UserChatResponse {
-  int32 user_id = 1;
 
 }
 
 
 
-service Users {
-  rpc UserCreate(UserChatRequest) returns(UserChatResponse); // 用户对话
+service Chat {
+  rpc UserChat(UserChatRequest) returns(UserChatResponse); // 用户对话
 }
 
 
