@@ -46,10 +46,10 @@ func (l *ChatSessionLogic) ChatSession(req *types.ChatSessionRequest) (resp *typ
 		},
 		Table: func() (string, any) {
 			return "(?) as u", l.svcCtx.DB.Model(&chat_models.ChatModel{}).
-				Select("least(send_user_id, rev_user_id)    as sU",
-					"greatest(send_user_id, rev_user_id) as rU",
-					" max(created_at)   as maxDate",
-					"max(msg_preview) as maxPreview").
+				Select("least(send_user_id, rev_user_id) as sU",
+					" greatest(send_user_id, rev_user_id) as rU",
+					"max(created_at) as maxDate",
+					"(select msg_preview from chat_models where (send_user_id = sU and rev_user_id = rU) or (send_user_id = rU and rev_user_id = sU) order by created_at desc limit 1 ) as maxPreview").
 				Where("send_user_id = ? or rev_user_id = ?", req.UserID, req.UserID).
 				Group("least(send_user_id, rev_user_id)").
 				Group("greatest(send_user_id, rev_user_id)")

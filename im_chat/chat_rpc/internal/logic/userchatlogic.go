@@ -48,10 +48,10 @@ func (l *UserChatLogic) UserChat(in *chat_rpc.UserChatRequest) (*chat_rpc.UserCh
 		SendUserID: uint(in.SendUserId),
 		RevUserID:  uint(in.RevUserId),
 		MsgType:    msg.Type,
-		//MsgPreView: "", //todo 写个方法获取
-		Msg:       msg,
-		SystemMsg: systemMsg,
+		Msg:        msg,
+		SystemMsg:  systemMsg,
 	}
+	chat.MsgPreView = chat.MsgPreviewMethod()
 	err = l.svcCtx.DB.Create(&chat).Error
 
 	if err != nil {

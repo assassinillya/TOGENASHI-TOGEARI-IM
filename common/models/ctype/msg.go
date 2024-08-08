@@ -6,6 +6,23 @@ import (
 	"time"
 )
 
+type MsgType = int8
+
+const (
+	TextMsgType MsgType = iota + 1
+	ImageMsgType
+	VideoMsgType
+	FileMsgType
+	VoiceMsgType
+	VoiceCallMsgType
+	VideoCallMsgType
+	WithdrawMsgType
+	ReplyMsgType
+	QuoteMsgType
+	AtMsgType
+	TipMsgType
+)
+
 type Msg struct {
 	Type         int8          `json:"type"`         // 消息类型 和 MsgType 一样
 	Content      *string       `json:"content"`      // 为1时使用
