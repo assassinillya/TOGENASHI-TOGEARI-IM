@@ -1,9 +1,10 @@
 syntax = "v1"
 
 type ChatHistoryRequest {
-	UserID uint `header:"User-ID"`
-	page   int  `form:"page,optional"`
-	limit  int  `form:"limit,optional"`
+	UserID   uint `header:"User-ID"`
+	page     int  `form:"page,optional"`
+	limit    int  `form:"limit,optional"`
+	FriendID uint `form:"friendID"` // 好友ID
 }
 
 type ChatHistoryResponse {

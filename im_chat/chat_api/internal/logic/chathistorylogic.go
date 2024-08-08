@@ -54,16 +54,16 @@ type ChatHistoryResponse struct {
 func (l *ChatHistoryLogic) ChatHistory(req *types.ChatHistoryRequest) (resp *ChatHistoryResponse, err error) {
 
 	// 判断是否为好友
-	isFriendResp, err := l.svcCtx.UserRpc.IsFriend(context.Background(), &user_rpc.IsFriendRequest{
+	res, err := l.svcCtx.UserRpc.IsFriend(context.Background(), &user_rpc.IsFriendRequest{
 		User1: uint32(req.UserID),
-		User2: uint32(req.UserID),
+		User2: uint32(req.FriendID),
 	})
 	if err != nil {
 		logx.Error(err)
 		return nil, err
 	}
 
-	if !isFriendResp.IsFriend {
+	if !res.IsFriend {
 		return nil, errors.New("你们还不是好友")
 	}
 
@@ -73,7 +73,8 @@ func (l *ChatHistoryLogic) ChatHistory(req *types.ChatHistoryRequest) (resp *Cha
 			Limit: req.Limit,
 			Sort:  "created_at desc",
 		},
-		Where: l.svcCtx.DB.Where("send_user_id = ? or rev_user_id = ?", req.UserID, req.UserID),
+		Where: l.svcCtx.DB.Where("(send_user_id = ? and rev_user_id = ?) or (rev_user_id = ? and send_user_id = ?)",
+			req.UserID, req.FriendID, req.UserID, req.FriendID),
 	})
 
 	var userIDList []uint32
@@ -111,10 +112,10 @@ func (l *ChatHistoryLogic) ChatHistory(req *types.ChatHistoryRequest) (resp *Cha
 		info := ChatHistory{
 			ID:        model.ID,
 			CreatedAt: model.CreatedAt.String(),
-			SendUser:  sendUser,
-			RevUser:   revUser,
 			Msg:       model.Msg,
 			SystemMsg: model.SystemMsg,
+			SendUser:  sendUser,
+			RevUser:   revUser,
 		}
 
 		if info.SendUser.ID == req.UserID {
