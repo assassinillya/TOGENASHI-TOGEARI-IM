@@ -21,6 +21,7 @@ type ChatSession struct {
 	Nickname   string `json:"nickname"`
 	CreatedAt  string `json:"createdAt"`  // 消息时间
 	MsgPreview string `json:"msgPreview"` // 消息预览
+	IsTop      bool   `json:"isTop"`      // 是否置顶
 }
 
 type ChatSessionRequest struct {
@@ -33,4 +34,12 @@ type ChatSessionRequest struct {
 type ChatSessionResponse struct {
 	List  []ChatSession `json:"list"`
 	Count int64         `json:"count"`
+}
+
+type UserTopRequest struct {
+	UserID   uint `header:"User-ID"`
+	FriendID uint `json:"friendID"`
+}
+
+type UserTopResponse struct {
 }

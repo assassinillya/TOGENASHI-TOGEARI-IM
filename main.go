@@ -28,6 +28,7 @@ func main() {
 			&user_models.FriendVerifyModel{},
 			&user_models.UserConfModel{},
 			&chat_models.ChatModel{},
+			&chat_models.TopUserModel{},
 			&group_models.GroupModel{},
 			&group_models.GroupMemberModel{},
 			&group_models.GroupMsgModel{},

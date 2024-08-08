@@ -13,6 +13,8 @@ import (
 )
 
 type (
+	IsFriendRequest      = user_rpc.IsFriendRequest
+	IsFriendResponse     = user_rpc.IsFriendResponse
 	UserCreateRequest    = user_rpc.UserCreateRequest
 	UserCreateResponse   = user_rpc.UserCreateResponse
 	UserInfo             = user_rpc.UserInfo
@@ -25,6 +27,7 @@ type (
 		UserCreate(ctx context.Context, in *UserCreateRequest, opts ...grpc.CallOption) (*UserCreateResponse, error)
 		UserInfo(ctx context.Context, in *UserInfoRequest, opts ...grpc.CallOption) (*UserInfoResponse, error)
 		UserListInfo(ctx context.Context, in *UserListInfoRequest, opts ...grpc.CallOption) (*UserListInfoResponse, error)
+		IsFriend(ctx context.Context, in *IsFriendRequest, opts ...grpc.CallOption) (*IsFriendResponse, error)
 	}
 
 	defaultUsers struct {
@@ -51,4 +54,9 @@ func (m *defaultUsers) UserInfo(ctx context.Context, in *UserInfoRequest, opts .
 func (m *defaultUsers) UserListInfo(ctx context.Context, in *UserListInfoRequest, opts ...grpc.CallOption) (*UserListInfoResponse, error) {
 	client := user_rpc.NewUsersClient(m.cli.Conn())
 	return client.UserListInfo(ctx, in, opts...)
+}
+
+func (m *defaultUsers) IsFriend(ctx context.Context, in *IsFriendRequest, opts ...grpc.CallOption) (*IsFriendResponse, error) {
+	client := user_rpc.NewUsersClient(m.cli.Conn())
+	return client.IsFriend(ctx, in, opts...)
 }

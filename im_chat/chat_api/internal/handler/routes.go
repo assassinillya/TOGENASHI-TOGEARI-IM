@@ -22,6 +22,11 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Path:    "/api/chat/session",
 				Handler: chatSessionHandler(serverCtx),
 			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/api/chat/user_top",
+				Handler: userTopHandler(serverCtx),
+			},
 		},
 	)
 }

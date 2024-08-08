@@ -27,6 +27,7 @@ type ChatSession {
 	Nickname   string `json:"nickname"`
 	CreatedAt  string `json:"createdAt"` // 消息时间
 	MsgPreview string `json:"msgPreview"` // 消息预览
+	isTop      bool   `json:"isTop"` // 是否置顶
 }
 
 type ChatSessionResponse {
@@ -34,11 +35,21 @@ type ChatSessionResponse {
 	Count int64         `json:"count"`
 }
 
+type userTopRequest {
+	UserID   uint `header:"User-ID"`
+	FriendID uint `json:"friendID"`
+}
+
+type userTopResponse {}
+
 service chat {
 	@handler chatHistory
 	get /api/chat/history (ChatHistoryRequest) returns (ChatHistoryResponse) // 聊天记录
 
 	@handler chatSession
 	get /api/chat/session (ChatSessionRequest) returns (ChatSessionResponse) // 最近会话列表
+
+	@handler userTop
+	post /api/chat/user_top (userTopRequest) returns (userTopResponse) // 最近会话列表
 } // 在此文件夹下运行 goctl api go -api chat_api.api -dir . --home ../../template
 

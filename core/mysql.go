@@ -27,7 +27,9 @@ import (
 //}
 
 func InitGorm(MysqlDataSource string) *gorm.DB {
-	db, err := gorm.Open(mysql.Open(MysqlDataSource), &gorm.Config{})
+	db, err := gorm.Open(mysql.Open(MysqlDataSource), &gorm.Config{
+		DisableForeignKeyConstraintWhenMigrating: true,
+	})
 	if err != nil {
 		panic("连接mysql数据库失败, error=" + err.Error())
 	} else {
