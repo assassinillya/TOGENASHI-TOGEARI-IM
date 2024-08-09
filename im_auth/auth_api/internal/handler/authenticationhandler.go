@@ -17,7 +17,7 @@ func authenticationHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			response.Response(r, w, nil, err)
 			return
 		}
-
+		r.URL.Query().Get("Token")
 		l := logic.NewAuthenticationLogic(r.Context(), svcCtx)
 		resp, err := l.Authentication(&req)
 		response.Response(r, w, resp, err)

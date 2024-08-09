@@ -51,7 +51,7 @@ type chatDeleteRequest {
 type chatDeleteResponse {}
 
 type chatRequest {
-	UserID uint `form:"User-ID"`
+	UserID uint `header:"User-ID"`
 }
 
 type chatResponse {}

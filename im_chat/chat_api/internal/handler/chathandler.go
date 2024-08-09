@@ -15,7 +15,7 @@ import (
 func chatHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req types.ChatRequest
-		if err := httpx.ParseForm(r, &req); err != nil {
+		if err := httpx.ParseHeaders(r, &req); err != nil {
 			response.Response(r, w, nil, err)
 			return
 		}
