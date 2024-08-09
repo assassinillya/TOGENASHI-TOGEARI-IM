@@ -15,15 +15,9 @@ import (
 	"net/http"
 )
 
-type UserInfo struct {
-	Nickname string `json:"nickName"`
-	Avatar   string `json:"avatar"`
-	UserID   uint   `json:"userID"`
-}
-
 type UserWsInfo struct {
-	UserInfo UserInfo        //用户信息
-	Conn     *websocket.Conn // 用户的ws连接对象
+	UserInfo user_models.UserModel //用户信息
+	Conn     *websocket.Conn       // 用户的ws连接对象
 }
 
 var UserWsMap = map[uint]UserWsInfo{}
@@ -73,38 +67,43 @@ func chatHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 		}
 
 		var userWsInfo = UserWsInfo{
-			UserInfo: UserInfo{
-				UserID:   req.UserID,
-				Avatar:   userInfo.Avatar,
-				Nickname: userInfo.Nickname,
-			},
-			Conn: conn,
+			UserInfo: userInfo,
+			Conn:     conn,
 		}
 
 		UserWsMap[req.UserID] = userWsInfo
+		// 遍历在线的用户, 如果与当前用户是好友, 就给他发好友在线
 
-		if userInfo.UserConfModel.FriendOnline {
-			// 如果好友开启了好友上线提醒
+		// 先把所有在线的用户id取出来, 以及待确认的用户id, 然后传到用户rpc服务中
+		// [1,2,3]  3
+		// 在rpc服务, 去判断哪些用户是好友关系
 
-			// 查一下自己的好友是不是上线了
-			friendsRes, err := svcCtx.UserRpc.FriendList(context.Background(), &user_rpc.FriendListRequest{
-				User: uint32(req.UserID),
-			})
-			if err != nil {
-				logx.Error(err)
-				response.Response(r, w, nil, err)
-				return
-			}
-
-			for _, info := range friendsRes.FriendList {
-				friend, ok := UserWsMap[uint(info.UserId)]
-				if ok {
-					// 好友上线了
-					conn.WriteMessage(websocket.TextMessage, []byte(fmt.Sprintf("好友%s上线了", friend.UserInfo.Nickname)))
-				}
-			}
-			// 查一下自己的好友列表, 返回用户id列表, 看看UserWsMap中是否存在, 如果存在就给自己发一个好友上线的消息
+		// 如果好友开启了好友上线提醒
+		// 查一下自己的好友是不是上线了
+		friendsRes, err := svcCtx.UserRpc.FriendList(context.Background(), &user_rpc.FriendListRequest{
+			User: uint32(req.UserID),
+		})
+		// 3 [3,4,5]
+		if err != nil {
+			logx.Error(err)
+			response.Response(r, w, nil, err)
+			return
 		}
+
+		for _, info := range friendsRes.FriendList {
+			friend, ok := UserWsMap[uint(info.UserId)]
+			if ok {
+				text := fmt.Sprintf("好友%s上线了", UserWsMap[req.UserID].UserInfo.Nickname) // todo 这里修改为备注好点 备注(nickName)
+				logx.Info(text)
+				// 判断用户是否开了好友上线提示功能
+				if friend.UserInfo.UserConfModel.FriendOnline {
+					// 好友上线了
+					friend.Conn.WriteMessage(websocket.TextMessage, []byte(text))
+				}
+
+			}
+		}
+		// 查一下自己的好友列表, 返回用户id列表, 看看UserWsMap中是否存在, 如果存在就给自己发一个好友上线的消息
 
 		logx.Info(UserWsMap)
 
