@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/zeromicro/go-zero/core/logx"
@@ -9,6 +10,7 @@ import (
 	"im_server/common/response"
 	"im_server/im_chat/chat_api/internal/svc"
 	"im_server/im_chat/chat_api/internal/types"
+	"im_server/im_user/user_models"
 	"im_server/im_user/user_rpc/types/user_rpc"
 	"net/http"
 )
@@ -36,7 +38,7 @@ func chatHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 
 		var upGrader = websocket.Upgrader{
 			CheckOrigin: func(r *http.Request) bool {
-				//鉴权 true表示放行，false表示拦截
+				// todo 鉴权 true表示放行，false表示拦截
 				return true
 			},
 		}
@@ -53,9 +55,17 @@ func chatHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			delete(UserWsMap, req.UserID)
 		}()
 		//调用户服务，获取当前用户信息
-		res, err := svcCtx.UserRpc.UserListInfo(context.Background(), &user_rpc.UserListInfoRequest{
-			UserIdList: []uint32{uint32(req.UserID)},
+		res, err := svcCtx.UserRpc.UserInfo(context.Background(), &user_rpc.UserInfoRequest{
+			UserId: uint32(req.UserID),
 		})
+		if err != nil {
+			logx.Error(err)
+			response.Response(r, w, nil, err)
+			return
+		}
+
+		var userInfo user_models.UserModel
+		json.Unmarshal(res.Data, &userInfo)
 		if err != nil {
 			logx.Error(err)
 			response.Response(r, w, nil, err)
@@ -65,13 +75,22 @@ func chatHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 		var userWsInfo = UserWsInfo{
 			UserInfo: UserInfo{
 				UserID:   req.UserID,
-				Avatar:   res.UserInfo[uint32(req.UserID)].Avatar,
-				Nickname: res.UserInfo[uint32(req.UserID)].NickName,
+				Avatar:   userInfo.Avatar,
+				Nickname: userInfo.Nickname,
 			},
 			Conn: conn,
 		}
 
 		UserWsMap[req.UserID] = userWsInfo
+
+		if userInfo.UserConfModel.FriendOnline {
+			// 如果好友开启了好友上线提醒
+
+			// 查一下自己的好友是不是上线了
+
+			// 查一下自己的好友列表, 返回用户id列表, 看看UserWsMap中是否存在, 如果存在就给自己发一个好友上线的消息
+		}
+
 		logx.Info(UserWsMap)
 
 		defer conn.Close()
