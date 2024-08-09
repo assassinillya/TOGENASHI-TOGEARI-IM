@@ -68,8 +68,10 @@ func ListQuery[T any](db *gorm.DB, model T, option Option) (list []T, count int6
 		option.PageInfo.Page = 1
 	}
 
-	if option.PageInfo.Limit <= 0 {
-		option.PageInfo.Limit = 10
+	if option.PageInfo.Limit != -1 {
+		if option.PageInfo.Limit <= 0 {
+			option.PageInfo.Limit = 10
+		}
 	}
 
 	offset := (option.PageInfo.Page - 1) * option.PageInfo.Limit

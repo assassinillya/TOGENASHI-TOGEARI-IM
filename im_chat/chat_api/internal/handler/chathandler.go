@@ -87,7 +87,22 @@ func chatHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			// 如果好友开启了好友上线提醒
 
 			// 查一下自己的好友是不是上线了
+			friendsRes, err := svcCtx.UserRpc.FriendList(context.Background(), &user_rpc.FriendListRequest{
+				User: uint32(req.UserID),
+			})
+			if err != nil {
+				logx.Error(err)
+				response.Response(r, w, nil, err)
+				return
+			}
 
+			for _, info := range friendsRes.FriendList {
+				friend, ok := UserWsMap[uint(info.UserId)]
+				if ok {
+					// 好友上线了
+					conn.WriteMessage(websocket.TextMessage, []byte(fmt.Sprintf("好友%s上线了", friend.UserInfo.Nickname)))
+				}
+			}
 			// 查一下自己的好友列表, 返回用户id列表, 看看UserWsMap中是否存在, 如果存在就给自己发一个好友上线的消息
 		}
 

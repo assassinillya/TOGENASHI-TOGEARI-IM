@@ -33,9 +33,11 @@ func (l *FriendListLogic) FriendList(req *types.FriendListRequest) (resp *types.
 			Page:  req.Page,
 			Limit: req.Limit,
 		},
-		Where:    l.svcCtx.DB.Where("send_user_id = ? or rev_user_id = ?", req.UserID, req.UserID),
+		//Where:    l.svcCtx.DB.Where("send_user_id = ? or rev_user_id = ?", req.UserID, req.UserID),
 		Preloads: []string{"SendUserModel", "RevUserModel"},
 	})
+
+	// 查哪些用户在线
 
 	var list []types.FriendInfoResponse
 	for _, friend := range friends {
