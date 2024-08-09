@@ -50,6 +50,12 @@ type chatDeleteRequest {
 
 type chatDeleteResponse {}
 
+type chatRequest {
+	UserID uint `form:"User-ID"`
+}
+
+type chatResponse {}
+
 service chat {
 	@handler chatHistory
 	get /api/chat/history (ChatHistoryRequest) returns (ChatHistoryResponse) // 聊天记录
@@ -62,5 +68,8 @@ service chat {
 
 	@handler chatDelete
 	delete /api/chat/chat (chatDeleteRequest) returns (chatDeleteResponse) // 删除聊天记录
+
+	@handler chatHandler
+	get /api/chat/ws/chat (chatRequest) returns (chatResponse) // ws的对话
 } // 在此文件夹下运行 goctl api go -api chat_api.api -dir . --home ../../template
 

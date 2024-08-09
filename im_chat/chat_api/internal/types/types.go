@@ -45,6 +45,13 @@ type ChatDeleteRequest struct {
 type ChatDeleteResponse struct {
 }
 
+type ChatRequest struct {
+	UserID uint `form:"User-ID"`
+}
+
+type ChatResponse struct {
+}
+
 type UserTopRequest struct {
 	UserID   uint `header:"User-ID"`
 	FriendID uint `json:"friendID"`

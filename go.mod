@@ -5,6 +5,7 @@ go 1.22
 require (
 	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/golang-jwt/jwt/v4 v4.5.0
+	github.com/gorilla/websocket v1.5.0
 	github.com/zeromicro/go-zero v1.6.6
 	go.etcd.io/etcd/client/v3 v3.5.15
 	golang.org/x/crypto v0.25.0
