@@ -5,6 +5,7 @@ import (
 	"im_server/common/list_query"
 	"im_server/common/models"
 	"im_server/im_user/user_models"
+	"strconv"
 
 	"im_server/im_user/user_api/internal/svc"
 	"im_server/im_user/user_api/internal/types"
@@ -38,6 +39,16 @@ func (l *FriendListLogic) FriendList(req *types.FriendListRequest) (resp *types.
 	})
 
 	// 查哪些用户在线
+	onlineMap := l.svcCtx.Redis.HGetAll("online").Val()
+	var onlineUserMap = map[uint]bool{}
+	for key, _ := range onlineMap {
+		val, err1 := strconv.Atoi(key)
+		if err1 != nil {
+			logx.Error(err1)
+			continue
+		}
+		onlineUserMap[uint(val)] = true
+	}
 
 	var list []types.FriendInfoResponse
 	for _, friend := range friends {
@@ -50,6 +61,7 @@ func (l *FriendListLogic) FriendList(req *types.FriendListRequest) (resp *types.
 				Abstract: friend.RevUserModel.Abstract,
 				Avatar:   friend.RevUserModel.Avatar,
 				Notice:   friend.SendUserNotice,
+				IsOnline: onlineUserMap[friend.RevUserID], // 查看对方是否在线
 			}
 		}
 
@@ -61,6 +73,7 @@ func (l *FriendListLogic) FriendList(req *types.FriendListRequest) (resp *types.
 				Abstract: friend.SendUserModel.Abstract,
 				Avatar:   friend.SendUserModel.Avatar,
 				Notice:   friend.RevUserNotice,
+				IsOnline: onlineUserMap[friend.SendUserID],
 			}
 		}
 		list = append(list, info)

@@ -13,4 +13,9 @@ type Config struct {
 	}
 	UserRpc zrpc.RpcClientConf
 	ChatRpc zrpc.RpcClientConf
+	Redis   struct {
+		Addr string
+		Pwd  string
+		DB   int
+	}
 }

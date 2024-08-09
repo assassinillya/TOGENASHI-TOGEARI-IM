@@ -47,6 +47,7 @@ func chatHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 		defer func() {
 			conn.Close()
 			delete(UserWsMap, req.UserID)
+			svcCtx.Redis.HDel("online", fmt.Sprintf("%d", req.UserID))
 		}()
 		//调用户服务，获取当前用户信息
 		res, err := svcCtx.UserRpc.UserInfo(context.Background(), &user_rpc.UserInfoRequest{
@@ -72,6 +73,9 @@ func chatHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 		}
 
 		UserWsMap[req.UserID] = userWsInfo
+		// 把在线的用户存入redis
+		svcCtx.Redis.HSet("online", fmt.Sprintf("%d", req.UserID), req.UserID)
+
 		// 遍历在线的用户, 如果与当前用户是好友, 就给他发好友在线
 
 		// 先把所有在线的用户id取出来, 以及待确认的用户id, 然后传到用户rpc服务中

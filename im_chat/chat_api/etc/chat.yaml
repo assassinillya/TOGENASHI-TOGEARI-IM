@@ -13,3 +13,7 @@ UserRpc:
     Hosts:
       - 127.0.0.1:2379
     Key: userrpc.rpc
+Redis:
+  Addr: 120.78.234.30:6379
+  Pwd: "123456"
+  DB: 0
