@@ -1,16 +1,30 @@
 package handler
 
 import (
+	"context"
 	"fmt"
+	"github.com/gorilla/websocket"
 	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/rest/httpx"
 	"im_server/common/response"
 	"im_server/im_chat/chat_api/internal/svc"
 	"im_server/im_chat/chat_api/internal/types"
+	"im_server/im_user/user_rpc/types/user_rpc"
 	"net/http"
-
-	"github.com/gorilla/websocket"
-	"github.com/zeromicro/go-zero/rest/httpx"
 )
+
+type UserInfo struct {
+	Nickname string `json:"nickName"`
+	Avatar   string `json:"avatar"`
+	UserID   uint   `json:"userID"`
+}
+
+type UserWsInfo struct {
+	UserInfo UserInfo        //用户信息
+	Conn     *websocket.Conn // 用户的ws连接对象
+}
+
+var UserWsMap = map[uint]UserWsInfo{}
 
 func chatHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -33,6 +47,32 @@ func chatHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			response.Response(r, w, nil, err)
 			return
 		}
+
+		defer func() {
+			conn.Close()
+			delete(UserWsMap, req.UserID)
+		}()
+		//调用户服务，获取当前用户信息
+		res, err := svcCtx.UserRpc.UserListInfo(context.Background(), &user_rpc.UserListInfoRequest{
+			UserIdList: []uint32{uint32(req.UserID)},
+		})
+		if err != nil {
+			logx.Error(err)
+			response.Response(r, w, nil, err)
+			return
+		}
+
+		var userWsInfo = UserWsInfo{
+			UserInfo: UserInfo{
+				UserID:   req.UserID,
+				Avatar:   res.UserInfo[uint32(req.UserID)].Avatar,
+				Nickname: res.UserInfo[uint32(req.UserID)].NickName,
+			},
+			Conn: conn,
+		}
+
+		UserWsMap[req.UserID] = userWsInfo
+		logx.Info(UserWsMap)
 
 		defer conn.Close()
 		for {
