@@ -27,18 +27,20 @@ func NewUserTopLogic(ctx context.Context, svcCtx *svc.ServiceContext) *UserTopLo
 }
 
 func (l *UserTopLogic) UserTop(req *types.UserTopRequest) (resp *types.UserTopResponse, err error) {
-	// 判断是否为好友
-	isFriendResp, err := l.svcCtx.UserRpc.IsFriend(context.Background(), &user_rpc.IsFriendRequest{
-		User1: uint32(req.UserID),
-		User2: uint32(req.FriendID),
-	})
-	if err != nil {
-		logx.Error(err)
-		return nil, err
-	}
+	if req.UserID != req.FriendID {
+		// 判断是否为好友
+		isFriendResp, err2 := l.svcCtx.UserRpc.IsFriend(context.Background(), &user_rpc.IsFriendRequest{
+			User1: uint32(req.UserID),
+			User2: uint32(req.FriendID),
+		})
+		if err2 != nil {
+			logx.Error(err2)
+			return nil, err2
+		}
 
-	if !isFriendResp.IsFriend {
-		return nil, errors.New("你们还不是好友")
+		if !isFriendResp.IsFriend {
+			return nil, errors.New("你们还不是好友")
+		}
 	}
 
 	var topUser chat_models.TopUserModel
@@ -52,6 +54,6 @@ func (l *UserTopLogic) UserTop(req *types.UserTopRequest) (resp *types.UserTopRe
 		return
 	}
 
-	l.svcCtx.DB.Delete(&topUser, "user_id = ? and top_user_id = ?", req.UserID, req.FriendID)
+	l.svcCtx.DB.Delete(&topUser)
 	return
 }

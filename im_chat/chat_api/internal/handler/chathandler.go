@@ -129,19 +129,21 @@ func chatHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 				conn.WriteMessage(websocket.TextMessage, []byte("消息格式不正确"))
 				continue
 			}
-			// 判断你聊天的这个人是不是你的好友
-			isFriendRes, err3 := svcCtx.UserRpc.IsFriend(context.Background(), &user_rpc.IsFriendRequest{
-				User1: uint32(req.UserID),
-				User2: uint32(request.RevUserID),
-			})
-			if err3 != nil {
-				logx.Error(err3)
-				conn.WriteMessage(websocket.TextMessage, []byte("用户服务, 请重试"))
-				return
-			}
+			if request.RevUserID != req.UserID {
+				// 判断你聊天的这个人是不是你的好友
+				isFriendRes, err3 := svcCtx.UserRpc.IsFriend(context.Background(), &user_rpc.IsFriendRequest{
+					User1: uint32(req.UserID),
+					User2: uint32(request.RevUserID),
+				})
+				if err3 != nil {
+					logx.Error(err3)
+					conn.WriteMessage(websocket.TextMessage, []byte("用户服务, 请重试"))
+					return
+				}
 
-			if !isFriendRes.IsFriend {
-				conn.WriteMessage(websocket.TextMessage, []byte("你们还不是好友"))
+				if !isFriendRes.IsFriend {
+					conn.WriteMessage(websocket.TextMessage, []byte("你们还不是好友"))
+				}
 			}
 
 			// 先入库
