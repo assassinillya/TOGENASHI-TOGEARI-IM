@@ -7,12 +7,14 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/rest/httpx"
+	"im_server/common/models/ctype"
 	"im_server/common/response"
 	"im_server/im_chat/chat_api/internal/svc"
 	"im_server/im_chat/chat_api/internal/types"
 	"im_server/im_user/user_models"
 	"im_server/im_user/user_rpc/types/user_rpc"
 	"net/http"
+	"time"
 )
 
 type UserWsInfo struct {
@@ -114,16 +116,75 @@ func chatHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 		defer conn.Close()
 		for {
 			// 消息类型，消息，错误
-			_, p, err := conn.ReadMessage()
-			if err != nil {
+			_, p, err1 := conn.ReadMessage()
+			if err1 != nil {
 				// 用户断开聊天
-				fmt.Println(err)
+				fmt.Println(err1)
 				break
 			}
+			var request ChatRequest
+			err2 := json.Unmarshal(p, &request)
+			if err2 != nil {
+				// 格式不正确
+				conn.WriteMessage(websocket.TextMessage, []byte("消息格式不正确"))
+				continue
+			}
+			// 判断你聊天的这个人是不是你的好友
+			isFriendRes, err3 := svcCtx.UserRpc.IsFriend(context.Background(), &user_rpc.IsFriendRequest{
+				User1: uint32(req.UserID),
+				User2: uint32(request.RevUserID),
+			})
+			if err3 != nil {
+				logx.Error(err3)
+				conn.WriteMessage(websocket.TextMessage, []byte("用户服务, 请重试"))
+				return
+			}
+
+			if !isFriendRes.IsFriend {
+				conn.WriteMessage(websocket.TextMessage, []byte("你们还不是好友"))
+			}
+
+			// 先入库
+
+			// 判断目标用户在不在线
+			targetUserWs, ok := UserWsMap[request.RevUserID]
+			if ok {
+				// 在线
+				// 发送消息
+				resp := ChatResponse{
+					RevUser: ctype.UserInfo{
+						ID:       request.RevUserID,
+						NickName: targetUserWs.UserInfo.Nickname,
+						Avatar:   targetUserWs.UserInfo.Avatar,
+					},
+					SendUser: ctype.UserInfo{
+						ID:       req.UserID,
+						NickName: userInfo.Nickname,
+						Avatar:   userInfo.Avatar,
+					},
+					Msg:       request.Msg,
+					CreatedAt: time.Now(),
+				}
+				byteData, _ := json.Marshal(resp)
+				targetUserWs.Conn.WriteMessage(websocket.TextMessage, byteData)
+			}
+
 			fmt.Println(string(p))
 			// 发送消息
 			conn.WriteMessage(websocket.TextMessage, []byte("xxx"))
 		}
 
 	}
+}
+
+type ChatRequest struct {
+	RevUserID uint      `json:"revUserID"` // 给谁发
+	Msg       ctype.Msg `json:"msg"`
+}
+
+type ChatResponse struct {
+	RevUser   ctype.UserInfo `json:"revUser"`
+	SendUser  ctype.UserInfo `json:"sendUser"`
+	Msg       ctype.Msg      `json:"msg"`
+	CreatedAt time.Time      `json:"createdAt"`
 }

@@ -29,16 +29,10 @@ func NewChatHistoryLogic(ctx context.Context, svcCtx *svc.ServiceContext) *ChatH
 	}
 }
 
-type UserInfo struct {
-	ID       uint   `json:"id"`
-	Nickname string `json:"nickname"`
-	Avatar   string `json:"avatar"`
-}
-
 type ChatHistory struct {
 	ID        uint             `json:"id"`
-	SendUser  UserInfo         `json:"sendUser"`
-	RevUser   UserInfo         `json:"revUser"`
+	SendUser  ctype.UserInfo   `json:"sendUser"`
+	RevUser   ctype.UserInfo   `json:"revUser"`
 	IsMe      bool             `json:"isMe"`      // 哪条消息是我发的
 	CreatedAt string           `json:"createdAt"` // 消息时间
 	Msg       *ctype.Msg       `json:"msg"`       // 消息内容
@@ -98,15 +92,15 @@ func (l *ChatHistoryLogic) ChatHistory(req *types.ChatHistoryRequest) (resp *Cha
 	var list = make([]ChatHistory, 0)
 	for _, model := range chatList {
 
-		sendUser := UserInfo{
+		sendUser := ctype.UserInfo{
 			ID:       model.SendUserID,
-			Nickname: response.UserInfo[uint32(model.SendUserID)].NickName,
+			NickName: response.UserInfo[uint32(model.SendUserID)].NickName,
 			Avatar:   response.UserInfo[uint32(model.SendUserID)].Avatar,
 		}
 
-		revUser := UserInfo{
+		revUser := ctype.UserInfo{
 			ID:       model.RevUserID,
-			Nickname: response.UserInfo[uint32(model.RevUserID)].NickName,
+			NickName: response.UserInfo[uint32(model.RevUserID)].NickName,
 			Avatar:   response.UserInfo[uint32(model.RevUserID)].Avatar,
 		}
 		info := ChatHistory{
