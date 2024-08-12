@@ -24,20 +24,20 @@ const (
 )
 
 type Msg struct {
-	Type         MsgType       `json:"type"`              // 消息类型 和 MsgType 一样
-	Content      *string       `json:"content"`           // 为1时使用
-	TextMsg      *TextMsg      `json:"textMsg"`           // 文本消息
-	ImageMsg     *ImageMsg     `json:"imageMsg"`          // 图片消息
-	VideoMsg     *VideoMsg     `json:"videoMsg"`          // 视频消息
-	FileMsg      *FileMsg      `json:"fileMsg"`           // 文件消息
-	VoiceMsg     *VoiceMsg     `json:"voiceMsg"`          // 语音消息
-	VoiceCallMsg *VoiceCallMsg `json:"voiceCallMsg"`      // 语音通话
-	VideoCallMsg *VideoCallMsg `json:"videoCallMsg"`      // 视频通话
-	WithdrawMsg  *WithdrawMsg  `json:"withdrawMsg"`       // 撤回消息
-	ReplyMsg     *ReplyMsg     `json:"replyMsg"`          // 回复消息
-	QuoteMsg     *QuoteMsg     `json:"quoteMsg"`          // 视频信息
-	AtMsg        *AtMsg        `json:"atMsg"`             // @用户的消息 群聊才有
-	TipMsg       *TipMsg       `json:"tip_msg,omitempty"` //提示消息，一般是不入库的
+	Type         MsgType       `json:"type"`         // 消息类型 和 MsgType 一样
+	Content      *string       `json:"content"`      // 为1时使用
+	TextMsg      *TextMsg      `json:"textMsg"`      // 文本消息
+	ImageMsg     *ImageMsg     `json:"imageMsg"`     // 图片消息
+	VideoMsg     *VideoMsg     `json:"videoMsg"`     // 视频消息
+	FileMsg      *FileMsg      `json:"fileMsg"`      // 文件消息
+	VoiceMsg     *VoiceMsg     `json:"voiceMsg"`     // 语音消息
+	VoiceCallMsg *VoiceCallMsg `json:"voiceCallMsg"` // 语音通话
+	VideoCallMsg *VideoCallMsg `json:"videoCallMsg"` // 视频通话
+	WithdrawMsg  *WithdrawMsg  `json:"withdrawMsg"`  // 撤回消息
+	ReplyMsg     *ReplyMsg     `json:"replyMsg"`     // 回复消息
+	QuoteMsg     *QuoteMsg     `json:"quoteMsg"`     // 视频信息
+	AtMsg        *AtMsg        `json:"atMsg"`        // @用户的消息 群聊才有
+	TipMsg       *TipMsg       `json:"tipMsg"`       //提示消息，一般是不入库的
 }
 
 // Scan 入库的数据

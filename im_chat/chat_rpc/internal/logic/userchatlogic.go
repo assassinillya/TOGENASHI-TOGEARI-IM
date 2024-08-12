@@ -27,7 +27,7 @@ func NewUserChatLogic(ctx context.Context, svcCtx *svc.ServiceContext) *UserChat
 
 func (l *UserChatLogic) UserChat(in *chat_rpc.UserChatRequest) (*chat_rpc.UserChatResponse, error) {
 
-	var msg *ctype.Msg
+	var msg ctype.Msg
 	err := json.Unmarshal(in.Msg, &msg)
 	if err != nil {
 		logx.Error(err)
