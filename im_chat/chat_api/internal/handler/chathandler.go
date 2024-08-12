@@ -7,10 +7,12 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/rest/httpx"
+	"gorm.io/gorm"
 	"im_server/common/models/ctype"
 	"im_server/common/response"
 	"im_server/im_chat/chat_api/internal/svc"
 	"im_server/im_chat/chat_api/internal/types"
+	"im_server/im_chat/chat_models"
 	"im_server/im_user/user_models"
 	"im_server/im_user/user_rpc/types/user_rpc"
 	"net/http"
@@ -96,11 +98,12 @@ func chatHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			return
 		}
 
+		logx.Infof("用户上线: %s 用户id: %d", userInfo.Nickname, req.UserID)
+
 		for _, info := range friendsRes.FriendList {
 			friend, ok := UserWsMap[uint(info.UserId)]
 			if ok {
 				text := fmt.Sprintf("好友%s上线了", UserWsMap[req.UserID].UserInfo.Nickname) // todo 这里修改为备注好点 备注(nickName)
-				logx.Info(text)
 				// 判断用户是否开了好友上线提示功能
 				if friend.UserInfo.UserConfModel.FriendOnline {
 					// 好友上线了
@@ -149,7 +152,7 @@ func chatHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			}
 
 			// 先入库
-
+			InsertMsgByChat(svcCtx.DB, request.RevUserID, req.UserID, request.Msg)
 			// 判断目标用户在不在线
 			SendMsgByUser(request.RevUserID, req.UserID, request.Msg)
 		}
@@ -170,8 +173,23 @@ type ChatResponse struct {
 }
 
 // InsertMsgByChat 消息入库
-func InsertMsgByChat(revUserID uint, sendUserID uint, msg ctype.Msg) {
-
+func InsertMsgByChat(db *gorm.DB, sendUserID uint, revUserID uint, msg ctype.Msg) {
+	chatModel := chat_models.ChatModel{
+		SendUserID: sendUserID,
+		RevUserID:  revUserID,
+		MsgType:    msg.Type,
+		Msg:        msg,
+	}
+	chatModel.MsgPreView = chatModel.MsgPreviewMethod()
+	err := db.Create(&chatModel).Error //TODO 这里出bug报错 sql: converting argument $7 type: unsupported type ctype.Msg, a struct
+	if err != nil {
+		logx.Error(err)
+		sendUser, ok := UserWsMap[sendUserID]
+		if !ok {
+			return
+		}
+		SendTipErrMsg(sendUser.Conn, "消息保存失败")
+	}
 }
 
 // SendMsgByUser 发消息 给谁发 谁发的

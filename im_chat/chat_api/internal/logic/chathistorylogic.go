@@ -35,7 +35,7 @@ type ChatHistory struct {
 	RevUser   ctype.UserInfo   `json:"revUser"`
 	IsMe      bool             `json:"isMe"`      // 哪条消息是我发的
 	CreatedAt string           `json:"createdAt"` // 消息时间
-	Msg       *ctype.Msg       `json:"msg"`       // 消息内容
+	Msg       ctype.Msg        `json:"msg"`       // 消息内容
 	SystemMsg *ctype.SystemMsg `json:"systemMsg"` // 系统消息
 }
 
