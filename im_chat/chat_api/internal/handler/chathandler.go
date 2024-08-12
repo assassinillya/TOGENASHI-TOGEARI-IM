@@ -126,7 +126,9 @@ func chatHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			err2 := json.Unmarshal(p, &request)
 			if err2 != nil {
 				// 格式不正确
-				conn.WriteMessage(websocket.TextMessage, []byte("消息格式不正确"))
+				logx.Error(err2)
+
+				SendTipErrMsg(conn, "参数解析失败")
 				continue
 			}
 			if request.RevUserID != req.UserID {
@@ -137,43 +139,19 @@ func chatHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 				})
 				if err3 != nil {
 					logx.Error(err3)
-					conn.WriteMessage(websocket.TextMessage, []byte("用户服务, 请重试"))
+					SendTipErrMsg(conn, "用户服务, 请重试")
 					return
 				}
 
 				if !isFriendRes.IsFriend {
-					conn.WriteMessage(websocket.TextMessage, []byte("你们还不是好友"))
+					SendTipErrMsg(conn, "你们还不是好友")
 				}
 			}
 
 			// 先入库
 
 			// 判断目标用户在不在线
-			targetUserWs, ok := UserWsMap[request.RevUserID]
-			if ok {
-				// 在线
-				// 发送消息
-				resp := ChatResponse{
-					RevUser: ctype.UserInfo{
-						ID:       request.RevUserID,
-						NickName: targetUserWs.UserInfo.Nickname,
-						Avatar:   targetUserWs.UserInfo.Avatar,
-					},
-					SendUser: ctype.UserInfo{
-						ID:       req.UserID,
-						NickName: userInfo.Nickname,
-						Avatar:   userInfo.Avatar,
-					},
-					Msg:       request.Msg,
-					CreatedAt: time.Now(),
-				}
-				byteData, _ := json.Marshal(resp)
-				targetUserWs.Conn.WriteMessage(websocket.TextMessage, byteData)
-			}
-
-			fmt.Println(string(p))
-			// 发送消息
-			conn.WriteMessage(websocket.TextMessage, []byte("xxx"))
+			SendMsgByUser(request.RevUserID, req.UserID, request.Msg)
 		}
 
 	}
@@ -189,4 +167,56 @@ type ChatResponse struct {
 	SendUser  ctype.UserInfo `json:"sendUser"`
 	Msg       ctype.Msg      `json:"msg"`
 	CreatedAt time.Time      `json:"createdAt"`
+}
+
+// InsertMsgByChat 消息入库
+func InsertMsgByChat(revUserID uint, sendUserID uint, msg ctype.Msg) {
+
+}
+
+// SendMsgByUser 发消息 给谁发 谁发的
+func SendMsgByUser(revUserID uint, sendUserID uint, msg ctype.Msg) {
+
+	revUser, ok := UserWsMap[revUserID]
+	if !ok {
+		return
+	}
+
+	sendUser, ok := UserWsMap[sendUserID]
+	if !ok {
+		return
+	}
+
+	resp := ChatResponse{
+		RevUser: ctype.UserInfo{
+			ID:       revUserID,
+			NickName: revUser.UserInfo.Nickname,
+			Avatar:   revUser.UserInfo.Avatar,
+		},
+		SendUser: ctype.UserInfo{
+			ID:       sendUserID,
+			NickName: sendUser.UserInfo.Nickname,
+			Avatar:   sendUser.UserInfo.Avatar,
+		},
+		Msg:       msg,
+		CreatedAt: time.Now(),
+	}
+	byteData, _ := json.Marshal(resp)
+	revUser.Conn.WriteMessage(websocket.TextMessage, byteData)
+}
+
+// SendTipErrMsg 发送错误提示的消息
+func SendTipErrMsg(conn *websocket.Conn, msg string) {
+	resp := ChatResponse{
+		Msg: ctype.Msg{
+			Type: ctype.TipMsgType,
+			TipMsg: &ctype.TipMsg{
+				Status:  "error",
+				Content: msg,
+			},
+		},
+		CreatedAt: time.Now(),
+	}
+	byteData, _ := json.Marshal(resp)
+	conn.WriteMessage(websocket.TextMessage, byteData)
 }
