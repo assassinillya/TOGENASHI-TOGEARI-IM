@@ -70,7 +70,6 @@ func ImageHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 		l := logic.NewImageLogic(r.Context(), svcCtx)
 		resp, err := l.Image(&req)
 
-		fmt.Println(fileModel, "and", err)
 		if err == nil {
 			// 找到了有一模一样的图片, 返回之前已有文件的WebPath
 			resp.Url = fileModel.WebPath()

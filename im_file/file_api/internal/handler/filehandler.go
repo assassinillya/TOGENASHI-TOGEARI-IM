@@ -4,13 +4,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/google/uuid"
+	"github.com/zeromicro/go-zero/core/logx"
 	"im_server/common/response"
 	"im_server/im_file/file_api/internal/logic"
 	"im_server/im_file/file_api/internal/svc"
 	"im_server/im_file/file_api/internal/types"
+	"im_server/im_file/file_model"
 	"im_server/im_user/user_rpc/types/user_rpc"
 	"im_server/utils"
-	"im_server/utils/random"
 	"io"
 	"net/http"
 	"os"
@@ -47,6 +49,21 @@ func FileHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			return
 		}
 
+		fileData, _ := io.ReadAll(file)
+		fileHash := utils.MD5(fileData)
+
+		l := logic.NewFileLogic(r.Context(), svcCtx)
+		resp, err := l.File(&req)
+
+		var fileModel file_model.FileModel
+		err = svcCtx.DB.Take(&fileModel, "hash = ?", fileHash).Error
+		if err == nil {
+			resp.Src = fileModel.WebPath()
+			logx.Info("文件hash值重复, 文件名为: ", fileHead.Filename)
+			response.Response(r, w, resp, err)
+			return
+		}
+
 		// 文件重名
 		// 在保存文件之前, 去读文件列表, 如果有重名的, 算一下他们两个的hash值, 若一样就不用保存
 		// 当他们hash值不一样, 就把最新的文件重命名后再保存 {old_name}_xxx.{suffix}
@@ -64,31 +81,35 @@ func FileHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 		dirName := fmt.Sprintf("%d_%s", req.UserID, userResponse.UserInfo[uint32(req.UserID)].NickName)
 
 		dirPath := path.Join(svcCtx.Config.UploadDir, "file", dirName)
-		dir, err := os.ReadDir(dirPath)
+		_, err = os.ReadDir(dirPath)
 		if err != nil {
 			os.MkdirAll(dirPath, 0666)
 		}
 
-		fileName := fileHead.Filename
-		filePath := path.Join(dirPath, fileHead.Filename)
-
-		imageData, _ := io.ReadAll(file)
-		l := logic.NewFileLogic(r.Context(), svcCtx)
-		resp, err := l.File(&req)
-		resp.Src = "/" + filePath
-		if utils.InDir(dir, fileName) {
-			// 文件重名
-			prefix := utils.GetFilePrefix(fileName)
-			newPath := fmt.Sprintf("%s_%s.%s", prefix, random.RandStr(4), suffix)
-			filePath = path.Join(dirPath, newPath)
+		// 文件信息入库
+		UID := uuid.New()
+		newFileModel := &file_model.FileModel{
+			UserID:   req.UserID,
+			FileName: fileHead.Filename,
+			Size:     fileHead.Size,
+			Hash:     fileHash,
+			Uid:      UID,
 		}
-
-		err = os.WriteFile(filePath, imageData, 0666)
+		newFileModel.Path = path.Join(dirPath, fmt.Sprintf("%s.%s", UID, suffix))
+		err = os.WriteFile(newFileModel.Path, fileData, 0666)
 		if err != nil {
 			response.Response(r, w, nil, err)
 			return
 		}
-		resp.Src = "/" + filePath
+
+		err = svcCtx.DB.Create(newFileModel).Error
+		if err != nil {
+			logx.Error(err)
+			response.Response(r, w, resp, err)
+			return
+		}
+
+		resp.Src = newFileModel.WebPath()
 		response.Response(r, w, resp, err)
 	}
 }
