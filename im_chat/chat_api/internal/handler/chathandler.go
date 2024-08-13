@@ -181,7 +181,7 @@ func InsertMsgByChat(db *gorm.DB, sendUserID uint, revUserID uint, msg ctype.Msg
 		Msg:        msg,
 	}
 	chatModel.MsgPreView = chatModel.MsgPreviewMethod()
-	err := db.Create(&chatModel).Error //TODO 这里出bug报错 sql: converting argument $7 type: unsupported type ctype.Msg, a struct
+	err := db.Create(&chatModel).Error
 	if err != nil {
 		logx.Error(err)
 		sendUser, ok := UserWsMap[sendUserID]

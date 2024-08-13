@@ -78,7 +78,7 @@ func ImageHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 		l := logic.NewImageLogic(r.Context(), svcCtx)
 		resp, err := l.Image(&req)
 		resp.Url = "/" + filePath
-		if InDir(dir, fileHead.Filename) {
+		if utils.InDir(dir, fileHead.Filename) {
 			// 文件重名
 			// 先读取文件列表, 查一下他们两个的hash值
 			byteData, _ := os.ReadFile(filePath)
@@ -109,13 +109,4 @@ func ImageHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 		resp.Url = "/" + filePath
 		response.Response(r, w, resp, err)
 	}
-}
-
-func InDir(dir []os.DirEntry, file string) bool {
-	for _, entry := range dir {
-		if entry.Name() == file {
-			return true
-		}
-	}
-	return false
 }
