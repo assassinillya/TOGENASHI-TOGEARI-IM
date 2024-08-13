@@ -11,7 +11,6 @@ import (
 	"im_server/im_file/file_api/internal/types"
 	"im_server/im_file/file_model"
 	"im_server/utils"
-	"im_server/utils/random"
 	"io"
 	"net/http"
 	"os"
@@ -63,69 +62,60 @@ func ImageHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			return
 		}
 
-		// TODO 这里的文件上传逻辑很简陋, 这个对比hash值只能对比最初的重名文件
-		// 文件重名
-		// 在保存文件之前, 去读文件列表, 如果有重名的, 算一下他们两个的hash值, 若一样就不用保存
-		// 当他们hash值不一样, 就把最新的文件重命名后再保存 {old_name}_xxx.{suffix}
+		imageData, _ := io.ReadAll(file)
+		imageHash := utils.MD5(imageData)
+
+		var fileModel file_model.FileModel
+		err = svcCtx.DB.Take(&fileModel, "hash = ?", imageHash).Error
+		l := logic.NewImageLogic(r.Context(), svcCtx)
+		resp, err := l.Image(&req)
+
+		fmt.Println(fileModel, "and", err)
+		if err == nil {
+			// 找到了有一模一样的图片, 返回之前已有文件的WebPath
+			resp.Url = fileModel.WebPath()
+			logx.Info("文件hash值重复, 文件名为: ", fileHead.Filename)
+			response.Response(r, w, resp, nil)
+			return
+
+		}
+
+		// 拼接路径 /uploads/imageType/{uid}.{后缀}
 
 		dirPath := path.Join(svcCtx.Config.UploadDir, imageType)
-		dir, err := os.ReadDir(dirPath)
+		_, err = os.ReadDir(dirPath)
 		if err != nil {
 			os.MkdirAll(dirPath, 0666)
 		}
 
-		imageData, _ := io.ReadAll(file)
 		fileName := fileHead.Filename
-		filePath := path.Join(svcCtx.Config.UploadDir, imageType, fileName)
-		l := logic.NewImageLogic(r.Context(), svcCtx)
-		resp, err := l.Image(&req)
-		resp.Url = "/" + filePath
-		if utils.InDir(dir, fileHead.Filename) {
-			// 文件重名
-			// 先读取文件列表, 查一下他们两个的hash值
-			byteData, _ := os.ReadFile(filePath)
-			oldFileHash := utils.MD5(byteData)
-			newFileHash := utils.MD5(imageData)
-			if oldFileHash == newFileHash {
-				// 文件hash值一样, 不用保存
-				logx.Info("文件hash值一样, 不用保存")
-				response.Response(r, w, resp, nil)
-				return
-			}
-
-			// 文件hash值不一样, 重命名
-			prefix := utils.GetFilePrefix(fileName)
-
-			newPath := fmt.Sprintf("%s_%s.%s", prefix, random.RandStr(4), suffix)
-			filePath = path.Join(svcCtx.Config.UploadDir, imageType, newPath)
-
-			//改了名字后还是重名 这个地方就得递归判断了
-
+		UID := uuid.New()
+		// 文件信息入库
+		newFileModel := &file_model.FileModel{
+			UserID:   req.UserID,
+			FileName: fileName,
+			Size:     fileHead.Size,
+			Hash:     utils.MD5(imageData),
+			Uid:      UID,
 		}
+		newFileModel.Path = path.Join(dirPath, fmt.Sprintf("%s.%s", UID, suffix))
+		fmt.Println(newFileModel.Path)
 
-		err = os.WriteFile(filePath, imageData, 0666)
+		err = os.WriteFile(newFileModel.Path, imageData, 0666)
 		if err != nil {
+			logx.Error(err)
 			response.Response(r, w, nil, err)
 			return
 		}
 
-		// 文件信息入库
-		fileModel := &file_model.FileModel{
-			UserID:   req.UserID,
-			FileName: fileName,
-			Size:     fileHead.Size,
-			Path:     filePath,
-			Hash:     utils.MD5(imageData),
-			Uid:      uuid.New(),
-		}
-		err = svcCtx.DB.Create(fileModel).Error
+		err = svcCtx.DB.Create(newFileModel).Error
 		if err != nil {
 			logx.Error(err)
 			response.Response(r, w, resp, err)
 			return
 		}
 
-		resp.Url = fileModel.WebPath()
+		resp.Url = newFileModel.WebPath()
 
 		response.Response(r, w, resp, err)
 	}
