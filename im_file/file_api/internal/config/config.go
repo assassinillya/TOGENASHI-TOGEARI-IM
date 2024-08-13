@@ -13,4 +13,7 @@ type Config struct {
 	BlackList []string // 文件上传的黑名单
 	UploadDir string   // 上传文件保存的目录
 	UserRpc   zrpc.RpcClientConf
+	Mysql     struct {
+		DataSource string
+	}
 }

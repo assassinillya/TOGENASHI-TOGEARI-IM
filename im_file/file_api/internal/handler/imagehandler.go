@@ -3,11 +3,13 @@ package handler
 import (
 	"errors"
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/zeromicro/go-zero/core/logx"
 	"im_server/common/response"
 	"im_server/im_file/file_api/internal/logic"
 	"im_server/im_file/file_api/internal/svc"
 	"im_server/im_file/file_api/internal/types"
+	"im_server/im_file/file_model"
 	"im_server/utils"
 	"im_server/utils/random"
 	"io"
@@ -106,7 +108,25 @@ func ImageHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			response.Response(r, w, nil, err)
 			return
 		}
-		resp.Url = "/" + filePath
+
+		// 文件信息入库
+		fileModel := &file_model.FileModel{
+			UserID:   req.UserID,
+			FileName: fileName,
+			Size:     fileHead.Size,
+			Path:     filePath,
+			Hash:     utils.MD5(imageData),
+			Uid:      uuid.New(),
+		}
+		err = svcCtx.DB.Create(fileModel).Error
+		if err != nil {
+			logx.Error(err)
+			response.Response(r, w, resp, err)
+			return
+		}
+
+		resp.Url = fileModel.WebPath()
+
 		response.Response(r, w, resp, err)
 	}
 }

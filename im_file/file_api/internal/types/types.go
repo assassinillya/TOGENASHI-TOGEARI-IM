@@ -10,6 +10,7 @@ type FileResponse struct {
 }
 
 type ImageRequest struct {
+	UserID uint `header:"User-ID"`
 }
 
 type ImageResponse struct {

@@ -1,6 +1,8 @@
 syntax = "v1"
 
-type ImageRequest {}
+type ImageRequest {
+	UserID uint `header:"User-ID"`
+}
 
 type ImageResponse {
 	Url string `json:"url"`
