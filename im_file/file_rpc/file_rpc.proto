@@ -1,0 +1,18 @@
+syntax = "proto3";
+package file_rpc;
+option go_package = "./file_rpc";
+
+message FileInfoRequest{
+  string file_id = 1;
+}
+
+message FileInfoResponse{
+  string file_name = 1;
+  string file_hash = 2;
+  int64  file_size = 3;
+  string file_type = 4;//文件后缀
+}
+service files{
+  rpc FileInfo(FileInfoRequest)returns(FileInfoResponse);
+}
+// goctl rpc protoc file_rpc.proto --go_out=./types --go-grpc_out=./types --zrpc_out=.
