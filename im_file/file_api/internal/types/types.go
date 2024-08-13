@@ -18,6 +18,8 @@ type ImageResponse struct {
 }
 
 type ImageShowRequest struct {
-	ImageType string `path:"imageType"`
 	ImageName string `path:"imageName"`
+}
+
+type ImageShowResponse struct {
 }
