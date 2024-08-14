@@ -13,9 +13,11 @@ import (
 	"im_server/im_chat/chat_api/internal/svc"
 	"im_server/im_chat/chat_api/internal/types"
 	"im_server/im_chat/chat_models"
+	"im_server/im_file/file_rpc/types/file_rpc"
 	"im_server/im_user/user_models"
 	"im_server/im_user/user_rpc/types/user_rpc"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -142,18 +144,42 @@ func chatHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 				})
 				if err3 != nil {
 					logx.Error(err3)
-					SendTipErrMsg(conn, "用户服务, 请重试")
+					SendTipErrMsg(conn, "用户服务错误, 请重试")
 					return
 				}
 
 				if !isFriendRes.IsFriend {
 					SendTipErrMsg(conn, "你们还不是好友")
+					return
 				}
+			}
+
+			// 判断是否是文件类型
+			switch request.Msg.Type {
+			case ctype.FileMsgType:
+				nameList := strings.Split(request.Msg.FileMsg.Src, "/")
+				if len(nameList) == 0 {
+					SendTipErrMsg(conn, "请上传文件")
+					return
+				}
+
+				fileID := nameList[len(nameList)-1]
+				fileResponse, err4 := svcCtx.FileRpc.FileInfo(context.Background(), &file_rpc.FileInfoRequest{
+					FileId: fileID,
+				})
+				if err4 != nil {
+					logx.Error(err4)
+					SendTipErrMsg(conn, err4.Error())
+					continue
+				}
+				request.Msg.FileMsg.Title = fileResponse.FileName
+				request.Msg.FileMsg.Size = fileResponse.FileSize
+				request.Msg.FileMsg.Type = fileResponse.FileType
 			}
 
 			// 先入库
 			InsertMsgByChat(svcCtx.DB, request.RevUserID, req.UserID, request.Msg)
-			// 判断目标用户在不在线
+			// 判断目标用户在不在线 给发送双方都要发消息
 			SendMsgByUser(request.RevUserID, req.UserID, request.Msg)
 		}
 
@@ -221,6 +247,9 @@ func SendMsgByUser(revUserID uint, sendUserID uint, msg ctype.Msg) {
 	}
 	byteData, _ := json.Marshal(resp)
 	revUser.Conn.WriteMessage(websocket.TextMessage, byteData)
+	if revUser.UserInfo.ID != sendUser.UserInfo.ID { //避免给自己发两条
+		sendUser.Conn.WriteMessage(websocket.TextMessage, byteData)
+	}
 }
 
 // SendTipErrMsg 发送错误提示的消息

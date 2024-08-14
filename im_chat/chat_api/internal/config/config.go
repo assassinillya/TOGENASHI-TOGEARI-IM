@@ -12,6 +12,7 @@ type Config struct {
 		DataSource string
 	}
 	UserRpc zrpc.RpcClientConf
+	FileRpc zrpc.RpcClientConf
 	Redis   struct {
 		Addr string
 		Pwd  string

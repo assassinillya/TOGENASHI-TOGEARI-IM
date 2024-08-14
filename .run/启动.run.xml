@@ -1,13 +1,14 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="启动" type="CompoundRunConfigurationType">
     <toRun name="1_user_rpc" type="GoApplicationRunConfiguration" />
-    <toRun name="2_gateway" type="GoApplicationRunConfiguration" />
+    <toRun name="2_file_rpc" type="GoApplicationRunConfiguration" />
     <toRun name="3_chat_rpc" type="GoApplicationRunConfiguration" />
     <toRun name="4_file" type="GoApplicationRunConfiguration" />
     <toRun name="5_auth" type="GoApplicationRunConfiguration" />
     <toRun name="6_settings" type="GoApplicationRunConfiguration" />
     <toRun name="7_chat" type="GoApplicationRunConfiguration" />
     <toRun name="8_user" type="GoApplicationRunConfiguration" />
+    <toRun name="9_gateway" type="GoApplicationRunConfiguration" />
     <method v="2" />
   </configuration>
 </component>

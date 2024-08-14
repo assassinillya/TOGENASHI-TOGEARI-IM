@@ -13,6 +13,11 @@ UserRpc:
     Hosts:
       - 127.0.0.1:2379
     Key: userrpc.rpc
+FileRpc:
+  Etcd:
+    Hosts:
+      - 127.0.0.1:2379
+    Key: filerpc.rpc
 Redis:
   Addr: 120.78.234.30:6379
   Pwd: "123456"
