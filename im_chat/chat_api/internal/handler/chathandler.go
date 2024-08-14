@@ -175,6 +175,54 @@ func chatHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 				request.Msg.FileMsg.Title = fileResponse.FileName
 				request.Msg.FileMsg.Size = fileResponse.FileSize
 				request.Msg.FileMsg.Type = fileResponse.FileType
+			case ctype.WithdrawMsgType:
+				// 撤回消息的消息id是必填的
+				if request.Msg.WithdrawMsg.MsgID == 0 {
+					SendTipErrMsg(conn, "撤回消息id必填")
+					return
+				}
+
+				// 自己只能撤回自己的消息
+				// 查找这个消息是谁发的
+				var msgModel chat_models.ChatModel
+				err = svcCtx.DB.Take(&msgModel, request.Msg.WithdrawMsg.MsgID).Error
+				if err != nil {
+					SendTipErrMsg(conn, "消息不存在")
+					continue
+				}
+				// 查找这个信息是不是自己发的
+				if msgModel.SendUserID != req.UserID {
+					SendTipErrMsg(conn, "只能撤回自己的消息")
+					continue
+				}
+
+				// 判断消息的时候, 小于2分钟的消息不能撤回
+				if time.Now().Sub(msgModel.CreatedAt) >= time.Minute*2 {
+					SendTipErrMsg(conn, "只能撤回2分钟以内的消息")
+					continue
+				}
+
+				// 撤回逻辑
+				// 收到撤回请求之后, 服务端把原消息的类型改为撤回消息类型, 并且记录原消息
+				// 然后通知前端的收发方, 重新拉取聊天记录
+
+				var content = "xx 撤回了一条消息"
+				if userInfo.UserConfModel.RecallMessage != nil {
+					content = *userInfo.UserConfModel.RecallMessage
+				}
+
+				svcCtx.DB.Model(&msgModel).Updates(chat_models.ChatModel{
+					Msg: ctype.Msg{
+						Type: ctype.WithdrawMsgType,
+						WithdrawMsg: &ctype.WithdrawMsg{
+							Content:   content,
+							MsgID:     request.Msg.WithdrawMsg.MsgID,
+							OriginMsg: &msgModel.Msg,
+						},
+					},
+				})
+
+				// 把原消息置空
 			}
 
 			// 先入库
@@ -200,6 +248,13 @@ type ChatResponse struct {
 
 // InsertMsgByChat 消息入库
 func InsertMsgByChat(db *gorm.DB, sendUserID uint, revUserID uint, msg ctype.Msg) {
+
+	switch msg.Type {
+	case ctype.WithdrawMsgType:
+		logx.Info("撤回消息是不自己入库的")
+		return
+	}
+
 	chatModel := chat_models.ChatModel{
 		SendUserID: sendUserID,
 		RevUserID:  revUserID,
