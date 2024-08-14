@@ -105,7 +105,7 @@ func chatHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 		for _, info := range friendsRes.FriendList {
 			friend, ok := UserOnlineWsMap[uint(info.UserId)]
 			if ok {
-				text := fmt.Sprintf("好友%s上线了", UserOnlineWsMap[req.UserID].UserInfo.Nickname) // todo 这里修改为备注好点 备注(nickName)
+				text := fmt.Sprintf("好友%s上线了", UserOnlineWsMap[req.UserID].UserInfo.Nickname)
 				// 判断用户是否开了好友上线提示功能
 				if friend.UserInfo.UserConfModel.FriendOnline {
 					// 好友上线了
@@ -236,9 +236,9 @@ func chatHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			}
 
 			// 先入库
-			InsertMsgByChat(svcCtx.DB, request.RevUserID, req.UserID, request.Msg)
+			msgID := InsertMsgByChat(svcCtx.DB, request.RevUserID, req.UserID, request.Msg)
 			// 判断目标用户在不在线 给发送双方都要发消息
-			SendMsgByUser(svcCtx, request.RevUserID, req.UserID, request.Msg)
+			SendMsgByUser(svcCtx, request.RevUserID, req.UserID, request.Msg, msgID)
 		}
 
 	}
@@ -250,14 +250,16 @@ type ChatRequest struct {
 }
 
 type ChatResponse struct {
+	ID        uint           `json:"id"`
+	IsMe      bool           `json:"isMe"`
 	RevUser   ctype.UserInfo `json:"revUser"`
 	SendUser  ctype.UserInfo `json:"sendUser"`
 	Msg       ctype.Msg      `json:"msg"`
-	CreatedAt time.Time      `json:"createdAt"`
+	CreatedAt time.Time      `json:"created_at"`
 }
 
 // InsertMsgByChat 消息入库
-func InsertMsgByChat(db *gorm.DB, sendUserID uint, revUserID uint, msg ctype.Msg) {
+func InsertMsgByChat(db *gorm.DB, sendUserID uint, revUserID uint, msg ctype.Msg) (msgID uint) {
 
 	switch msg.Type {
 	case ctype.WithdrawMsgType:
@@ -281,15 +283,17 @@ func InsertMsgByChat(db *gorm.DB, sendUserID uint, revUserID uint, msg ctype.Msg
 		}
 		SendTipErrMsg(sendUser.Conn, "消息保存失败")
 	}
+	return chatModel.ID
 }
 
 // SendMsgByUser 发消息 给谁发 谁发的
-func SendMsgByUser(svcCtx *svc.ServiceContext, revUserID uint, sendUserID uint, msg ctype.Msg) {
+func SendMsgByUser(svcCtx *svc.ServiceContext, revUserID uint, sendUserID uint, msg ctype.Msg, msgID uint) {
 
 	revUser, ok1 := UserOnlineWsMap[revUserID]
 	sendUser, ok2 := UserOnlineWsMap[sendUserID]
 
 	resp := ChatResponse{
+		ID:        msgID,
 		Msg:       msg,
 		CreatedAt: time.Now(),
 	}
@@ -346,11 +350,20 @@ func SendMsgByUser(svcCtx *svc.ServiceContext, revUserID uint, sendUserID uint, 
 		NickName: sendUser.UserInfo.Nickname,
 		Avatar:   sendUser.UserInfo.Avatar,
 	}
+	resp.IsMe = true
+
 	byteData, _ := json.Marshal(resp)
 	sendUser.Conn.WriteMessage(websocket.TextMessage, byteData)
 
+	//if ok1 && ok2 && sendUserID == revUserID{ // 自己加的判断是否为自己
+	//	resp.IsMe = true
+	//	byteData, _ = json.Marshal(resp)
+	//	revUser.Conn.WriteMessage(websocket.TextMessage, byteData)
+	//} else
 	if ok1 {
 		// 接受者在线
+		resp.IsMe = false
+		byteData, _ = json.Marshal(resp)
 		revUser.Conn.WriteMessage(websocket.TextMessage, byteData)
 
 	}
