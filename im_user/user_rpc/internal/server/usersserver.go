@@ -32,6 +32,11 @@ func (s *UsersServer) UserInfo(ctx context.Context, in *user_rpc.UserInfoRequest
 	return l.UserInfo(in)
 }
 
+func (s *UsersServer) UserBaseInfo(ctx context.Context, in *user_rpc.UserBaseInfoRequest) (*user_rpc.UserBaseInfoResponse, error) {
+	l := logic.NewUserBaseInfoLogic(ctx, s.svcCtx)
+	return l.UserBaseInfo(in)
+}
+
 func (s *UsersServer) UserListInfo(ctx context.Context, in *user_rpc.UserListInfoRequest) (*user_rpc.UserListInfoResponse, error) {
 	l := logic.NewUserListInfoLogic(ctx, s.svcCtx)
 	return l.UserListInfo(in)

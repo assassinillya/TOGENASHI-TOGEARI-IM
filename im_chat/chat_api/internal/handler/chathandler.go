@@ -26,7 +26,7 @@ type UserWsInfo struct {
 	Conn     *websocket.Conn       // 用户的ws连接对象
 }
 
-var UserWsMap = map[uint]UserWsInfo{}
+var UserOnlineWsMap = map[uint]UserWsInfo{}
 
 func chatHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -52,7 +52,7 @@ func chatHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 
 		defer func() {
 			conn.Close()
-			delete(UserWsMap, req.UserID)
+			delete(UserOnlineWsMap, req.UserID)
 			svcCtx.Redis.HDel("online", fmt.Sprintf("%d", req.UserID))
 		}()
 		//调用户服务，获取当前用户信息
@@ -78,7 +78,7 @@ func chatHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			Conn:     conn,
 		}
 
-		UserWsMap[req.UserID] = userWsInfo
+		UserOnlineWsMap[req.UserID] = userWsInfo
 		// 把在线的用户存入redis
 		svcCtx.Redis.HSet("online", fmt.Sprintf("%d", req.UserID), req.UserID)
 
@@ -103,9 +103,9 @@ func chatHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 		logx.Infof("用户上线: %s 用户id: %d", userInfo.Nickname, req.UserID)
 
 		for _, info := range friendsRes.FriendList {
-			friend, ok := UserWsMap[uint(info.UserId)]
+			friend, ok := UserOnlineWsMap[uint(info.UserId)]
 			if ok {
-				text := fmt.Sprintf("好友%s上线了", UserWsMap[req.UserID].UserInfo.Nickname) // todo 这里修改为备注好点 备注(nickName)
+				text := fmt.Sprintf("好友%s上线了", UserOnlineWsMap[req.UserID].UserInfo.Nickname) // todo 这里修改为备注好点 备注(nickName)
 				// 判断用户是否开了好友上线提示功能
 				if friend.UserInfo.UserConfModel.FriendOnline {
 					// 好友上线了
@@ -116,7 +116,7 @@ func chatHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 		}
 		// 查一下自己的好友列表, 返回用户id列表, 看看UserWsMap中是否存在, 如果存在就给自己发一个好友上线的消息
 
-		logx.Info(UserWsMap)
+		logx.Info(UserOnlineWsMap)
 
 		defer conn.Close()
 		for {
@@ -156,11 +156,21 @@ func chatHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 
 			// 判断是否是文件类型
 			switch request.Msg.Type {
+			case ctype.TextMsgType:
+				if request.Msg.TextMsg == nil {
+					SendTipErrMsg(conn, "请输入消息内容")
+					continue
+				}
+
+				if request.Msg.TextMsg.Content == "" {
+					SendTipErrMsg(conn, "请输入消息内容")
+					continue
+				}
 			case ctype.FileMsgType:
 				nameList := strings.Split(request.Msg.FileMsg.Src, "/")
 				if len(nameList) == 0 {
 					SendTipErrMsg(conn, "请上传文件")
-					return
+					continue
 				}
 
 				fileID := nameList[len(nameList)-1]
@@ -228,7 +238,7 @@ func chatHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			// 先入库
 			InsertMsgByChat(svcCtx.DB, request.RevUserID, req.UserID, request.Msg)
 			// 判断目标用户在不在线 给发送双方都要发消息
-			SendMsgByUser(request.RevUserID, req.UserID, request.Msg)
+			SendMsgByUser(svcCtx, request.RevUserID, req.UserID, request.Msg)
 		}
 
 	}
@@ -265,7 +275,7 @@ func InsertMsgByChat(db *gorm.DB, sendUserID uint, revUserID uint, msg ctype.Msg
 	err := db.Create(&chatModel).Error
 	if err != nil {
 		logx.Error(err)
-		sendUser, ok := UserWsMap[sendUserID]
+		sendUser, ok := UserOnlineWsMap[sendUserID]
 		if !ok {
 			return
 		}
@@ -274,37 +284,77 @@ func InsertMsgByChat(db *gorm.DB, sendUserID uint, revUserID uint, msg ctype.Msg
 }
 
 // SendMsgByUser 发消息 给谁发 谁发的
-func SendMsgByUser(revUserID uint, sendUserID uint, msg ctype.Msg) {
+func SendMsgByUser(svcCtx *svc.ServiceContext, revUserID uint, sendUserID uint, msg ctype.Msg) {
 
-	revUser, ok := UserWsMap[revUserID]
-	if !ok {
-		return
-	}
-
-	sendUser, ok := UserWsMap[sendUserID]
-	if !ok {
-		return
-	}
+	revUser, ok1 := UserOnlineWsMap[revUserID]
+	sendUser, ok2 := UserOnlineWsMap[sendUserID]
 
 	resp := ChatResponse{
-		RevUser: ctype.UserInfo{
-			ID:       revUserID,
-			NickName: revUser.UserInfo.Nickname,
-			Avatar:   revUser.UserInfo.Avatar,
-		},
-		SendUser: ctype.UserInfo{
-			ID:       sendUserID,
-			NickName: sendUser.UserInfo.Nickname,
-			Avatar:   sendUser.UserInfo.Avatar,
-		},
 		Msg:       msg,
 		CreatedAt: time.Now(),
 	}
-	byteData, _ := json.Marshal(resp)
-	revUser.Conn.WriteMessage(websocket.TextMessage, byteData)
-	if revUser.UserInfo.ID != sendUser.UserInfo.ID { //避免给自己发两条
-		sendUser.Conn.WriteMessage(websocket.TextMessage, byteData)
+
+	// 自己与自己发消息
+	if ok1 && ok2 && sendUserID == revUserID {
+		//百分百是自己与自己发消息了
+		resp.SendUser = ctype.UserInfo{
+			ID:       sendUserID,
+			NickName: sendUser.UserInfo.Nickname,
+			Avatar:   sendUser.UserInfo.Avatar,
+		}
+		resp.RevUser = ctype.UserInfo{
+			ID:       revUserID,
+			NickName: revUser.UserInfo.Nickname,
+			Avatar:   revUser.UserInfo.Avatar,
+		}
+		byteData, _ := json.Marshal(resp)
+		revUser.Conn.WriteMessage(websocket.TextMessage, byteData)
+		return
 	}
+
+	// 在线的情况下, 我是可以拿到对方的在线信息的
+	// 对方不在线的情况下, 我只能通过调用用户服务rpc方法来获取
+
+	// 无论如何都要给发送者回传消息
+
+	if !ok1 {
+		UserBaseInfo, err := svcCtx.UserRpc.UserBaseInfo(context.Background(), &user_rpc.UserBaseInfoRequest{
+			UserId: uint32(revUserID),
+		})
+
+		if err != nil {
+			logx.Error(err)
+			return
+		}
+
+		resp.RevUser = ctype.UserInfo{
+			ID:       revUserID,
+			NickName: UserBaseInfo.NickName,
+			Avatar:   UserBaseInfo.Avatar,
+		}
+	} else {
+		resp.RevUser = ctype.UserInfo{
+			ID:       revUserID,
+			NickName: revUser.UserInfo.Nickname,
+			Avatar:   revUser.UserInfo.Avatar,
+		}
+	}
+
+	// 发送者在线
+	resp.SendUser = ctype.UserInfo{
+		ID:       sendUserID,
+		NickName: sendUser.UserInfo.Nickname,
+		Avatar:   sendUser.UserInfo.Avatar,
+	}
+	byteData, _ := json.Marshal(resp)
+	sendUser.Conn.WriteMessage(websocket.TextMessage, byteData)
+
+	if ok1 {
+		// 接受者在线
+		revUser.Conn.WriteMessage(websocket.TextMessage, byteData)
+
+	}
+
 }
 
 // SendTipErrMsg 发送错误提示的消息

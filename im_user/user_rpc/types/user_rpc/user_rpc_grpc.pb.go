@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion8
 const (
 	Users_UserCreate_FullMethodName   = "/user_rpc.Users/UserCreate"
 	Users_UserInfo_FullMethodName     = "/user_rpc.Users/UserInfo"
+	Users_UserBaseInfo_FullMethodName = "/user_rpc.Users/UserBaseInfo"
 	Users_UserListInfo_FullMethodName = "/user_rpc.Users/UserListInfo"
 	Users_IsFriend_FullMethodName     = "/user_rpc.Users/IsFriend"
 	Users_FriendList_FullMethodName   = "/user_rpc.Users/FriendList"
@@ -32,6 +33,7 @@ const (
 type UsersClient interface {
 	UserCreate(ctx context.Context, in *UserCreateRequest, opts ...grpc.CallOption) (*UserCreateResponse, error)
 	UserInfo(ctx context.Context, in *UserInfoRequest, opts ...grpc.CallOption) (*UserInfoResponse, error)
+	UserBaseInfo(ctx context.Context, in *UserBaseInfoRequest, opts ...grpc.CallOption) (*UserBaseInfoResponse, error)
 	UserListInfo(ctx context.Context, in *UserListInfoRequest, opts ...grpc.CallOption) (*UserListInfoResponse, error)
 	IsFriend(ctx context.Context, in *IsFriendRequest, opts ...grpc.CallOption) (*IsFriendResponse, error)
 	FriendList(ctx context.Context, in *FriendListRequest, opts ...grpc.CallOption) (*FriendListResponse, error)
@@ -59,6 +61,16 @@ func (c *usersClient) UserInfo(ctx context.Context, in *UserInfoRequest, opts ..
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(UserInfoResponse)
 	err := c.cc.Invoke(ctx, Users_UserInfo_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *usersClient) UserBaseInfo(ctx context.Context, in *UserBaseInfoRequest, opts ...grpc.CallOption) (*UserBaseInfoResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UserBaseInfoResponse)
+	err := c.cc.Invoke(ctx, Users_UserBaseInfo_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -101,6 +113,7 @@ func (c *usersClient) FriendList(ctx context.Context, in *FriendListRequest, opt
 type UsersServer interface {
 	UserCreate(context.Context, *UserCreateRequest) (*UserCreateResponse, error)
 	UserInfo(context.Context, *UserInfoRequest) (*UserInfoResponse, error)
+	UserBaseInfo(context.Context, *UserBaseInfoRequest) (*UserBaseInfoResponse, error)
 	UserListInfo(context.Context, *UserListInfoRequest) (*UserListInfoResponse, error)
 	IsFriend(context.Context, *IsFriendRequest) (*IsFriendResponse, error)
 	FriendList(context.Context, *FriendListRequest) (*FriendListResponse, error)
@@ -116,6 +129,9 @@ func (UnimplementedUsersServer) UserCreate(context.Context, *UserCreateRequest) 
 }
 func (UnimplementedUsersServer) UserInfo(context.Context, *UserInfoRequest) (*UserInfoResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UserInfo not implemented")
+}
+func (UnimplementedUsersServer) UserBaseInfo(context.Context, *UserBaseInfoRequest) (*UserBaseInfoResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UserBaseInfo not implemented")
 }
 func (UnimplementedUsersServer) UserListInfo(context.Context, *UserListInfoRequest) (*UserListInfoResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UserListInfo not implemented")
@@ -171,6 +187,24 @@ func _Users_UserInfo_Handler(srv interface{}, ctx context.Context, dec func(inte
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(UsersServer).UserInfo(ctx, req.(*UserInfoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Users_UserBaseInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserBaseInfoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServer).UserBaseInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Users_UserBaseInfo_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServer).UserBaseInfo(ctx, req.(*UserBaseInfoRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -243,6 +277,10 @@ var Users_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UserInfo",
 			Handler:    _Users_UserInfo_Handler,
+		},
+		{
+			MethodName: "UserBaseInfo",
+			Handler:    _Users_UserBaseInfo_Handler,
 		},
 		{
 			MethodName: "UserListInfo",
