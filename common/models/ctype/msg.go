@@ -35,7 +35,7 @@ type Msg struct {
 	VideoCallMsg *VideoCallMsg `json:"videoCallMsg"` // 视频通话
 	WithdrawMsg  *WithdrawMsg  `json:"withdrawMsg"`  // 撤回消息
 	ReplyMsg     *ReplyMsg     `json:"replyMsg"`     // 回复消息
-	QuoteMsg     *QuoteMsg     `json:"quoteMsg"`     // 视频信息
+	QuoteMsg     *QuoteMsg     `json:"quoteMsg"`     // 引用信息
 	AtMsg        *AtMsg        `json:"atMsg"`        // @用户的消息 群聊才有
 	TipMsg       *TipMsg       `json:"tipMsg"`       //提示消息，一般是不入库的
 }
@@ -100,15 +100,21 @@ type WithdrawMsg struct {
 }
 
 type ReplyMsg struct {
-	MsgID   uint   `json:"msgID"`   //信息id
-	Content string `json:"content"` //回复的文本消息，目前只能限制回复文本
-	Msg     *Msg   `json:"msg"`
+	MsgID         uint      `json:"msgID"`   //消息id
+	Content       string    `json:"content"` //回复的文本消息, 目前只能限制回复文本
+	Msg           *Msg      `json:"msg"`
+	UserID        uint      `json:"userID"`        //被回复人的用户id
+	UserNickName  string    `json:"userNickName"`  //被回复人的用户昵称
+	OriginMsgDate time.Time `json:"originMsgDate"` //原消息的时间
 }
 
 type QuoteMsg struct {
-	MsgID   uint   `json:"msgID"`   //信息id
-	Content string `json:"content"` //回复的文本消息，目前只能限制回复文本
-	Msg     *Msg   `json:"msg"`
+	MsgID         uint      `json:"msgID"`   //消息id
+	Content       string    `json:"content"` //回复的文本消息, 目前只能限制回复文本
+	Msg           *Msg      `json:"msg"`
+	UserID        uint      `json:"userID"`        //被回复人的用户id
+	UserNickName  string    `json:"userNickName"`  //被回复人的用户昵称
+	OriginMsgDate time.Time `json:"originMsgDate"` //原消息的时间
 }
 
 // AtMsg @消息

@@ -167,6 +167,12 @@ func chatHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 					continue
 				}
 			case ctype.FileMsgType:
+
+				if request.Msg.FileMsg == nil {
+					SendTipErrMsg(conn, "请上传文件")
+					return
+				}
+
 				nameList := strings.Split(request.Msg.FileMsg.Src, "/")
 				if len(nameList) == 0 {
 					SendTipErrMsg(conn, "请上传文件")
@@ -187,9 +193,14 @@ func chatHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 				request.Msg.FileMsg.Type = fileResponse.FileType
 			case ctype.WithdrawMsgType:
 				// 撤回消息的消息id是必填的
-				if request.Msg.WithdrawMsg.MsgID == 0 {
+				if request.Msg.WithdrawMsg == nil {
 					SendTipErrMsg(conn, "撤回消息id必填")
 					return
+				}
+
+				if request.Msg.WithdrawMsg.MsgID == 0 {
+					SendTipErrMsg(conn, "撤回消息id必填")
+					continue
 				}
 
 				// 自己只能撤回自己的消息
@@ -233,6 +244,35 @@ func chatHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 				})
 
 				// 把原消息置空
+			case ctype.ReplyMsgType:
+				//回复消息
+				//先校验
+				// todo 这里MsgID拿不到始终为0
+				if request.Msg.ReplyMsg == nil || request.Msg.ReplyMsg.MsgID == 0 {
+					SendTipErrMsg(conn, "回复消息必填")
+					continue
+				}
+				//找这个原消息
+				var msgModel chat_models.ChatModel
+				err = svcCtx.DB.Take(&msgModel, request.Msg.ReplyMsg.MsgID).Error
+				if err != nil {
+					SendTipErrMsg(conn, "消息不存在")
+					continue
+				}
+
+				userBaseInfo, err3 := svcCtx.UserRpc.UserBaseInfo(context.Background(), &user_rpc.UserBaseInfoRequest{
+					UserId: uint32(msgModel.SendUserID),
+				})
+				if err3 != nil {
+					logx.Error(err3)
+					return
+				}
+
+				request.Msg.ReplyMsg.Msg = &msgModel.Msg
+				request.Msg.ReplyMsg.UserID = msgModel.SendUserID
+				request.Msg.ReplyMsg.UserNickName = userBaseInfo.NickName
+				request.Msg.ReplyMsg.OriginMsgDate = msgModel.CreatedAt
+
 			}
 
 			// 先入库
