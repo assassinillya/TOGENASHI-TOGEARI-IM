@@ -10,6 +10,7 @@ import (
 	"gorm.io/gorm"
 	"im_server/common/models/ctype"
 	"im_server/common/response"
+	"im_server/common/service/redis_service"
 	"im_server/im_chat/chat_api/internal/svc"
 	"im_server/im_chat/chat_api/internal/types"
 	"im_server/im_chat/chat_models"
@@ -296,12 +297,11 @@ func chatHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 					continue
 				}
 
-				userBaseInfo, err3 := svcCtx.UserRpc.UserBaseInfo(context.Background(), &user_rpc.UserBaseInfoRequest{
-					UserId: uint32(msgModel.SendUserID),
-				})
+				userBaseInfo, err3 := redis_service.GetUserBaseInfo(svcCtx.Redis, svcCtx.UserRpc, msgModel.SendUserID)
 				if err3 != nil {
 					logx.Error(err3)
-					return
+					SendTipErrMsg(conn, err3.Error())
+					continue
 				}
 
 				request.Msg.ReplyMsg.Msg = &msgModel.Msg
@@ -340,12 +340,11 @@ func chatHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 					continue
 				}
 
-				userBaseInfo, err3 := svcCtx.UserRpc.UserBaseInfo(context.Background(), &user_rpc.UserBaseInfoRequest{
-					UserId: uint32(msgModel.SendUserID),
-				})
+				userBaseInfo, err3 := redis_service.GetUserBaseInfo(svcCtx.Redis, svcCtx.UserRpc, msgModel.SendUserID)
 				if err3 != nil {
 					logx.Error(err3)
-					return
+					SendTipErrMsg(conn, err3.Error())
+					continue
 				}
 
 				request.Msg.QuoteMsg.Msg = &msgModel.Msg
@@ -441,9 +440,7 @@ func SendMsgByUser(svcCtx *svc.ServiceContext, sendUserID uint, revUserID uint, 
 	// 无论如何都要给发送者回传消息
 
 	if !ok1 {
-		UserBaseInfo, err := svcCtx.UserRpc.UserBaseInfo(context.Background(), &user_rpc.UserBaseInfoRequest{
-			UserId: uint32(revUserID),
-		})
+		userBaseInfo, err := redis_service.GetUserBaseInfo(svcCtx.Redis, svcCtx.UserRpc, revUserID)
 
 		if err != nil {
 			logx.Error(err)
@@ -452,8 +449,8 @@ func SendMsgByUser(svcCtx *svc.ServiceContext, sendUserID uint, revUserID uint, 
 
 		resp.RevUser = ctype.UserInfo{
 			ID:       revUserID,
-			NickName: UserBaseInfo.NickName,
-			Avatar:   UserBaseInfo.Avatar,
+			NickName: userBaseInfo.NickName,
+			Avatar:   userBaseInfo.Avatar,
 		}
 	} else {
 		resp.RevUser = ctype.UserInfo{
