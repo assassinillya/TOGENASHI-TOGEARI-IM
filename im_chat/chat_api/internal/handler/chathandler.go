@@ -260,6 +260,17 @@ func chatHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 					continue
 				}
 
+				// 回复的消息必须是你自己或者和你聊天的这个人发出来的
+
+				// 原消息必须是 当前你要和对方聊的 原消息就会有一个发送人id和接收人id, 我们的聊天也会有一个发送人id和接收人id
+				// 因为回复消息可以回复自己的, 也可以回复别人的
+				// 这里注意打开的会话必须是与别人的对话才能回复, 如果和自己对话回复别人的对话是不可以的
+				if !((msgModel.SendUserID == req.UserID && msgModel.RevUserID == request.RevUserID) ||
+					(msgModel.SendUserID == request.RevUserID && msgModel.RevUserID == req.UserID)) {
+					SendTipErrMsg(conn, "只能回复自己或者对方的信息")
+					continue
+				}
+
 				userBaseInfo, err3 := svcCtx.UserRpc.UserBaseInfo(context.Background(), &user_rpc.UserBaseInfoRequest{
 					UserId: uint32(msgModel.SendUserID),
 				})
