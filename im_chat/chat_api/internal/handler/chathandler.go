@@ -52,10 +52,22 @@ func chatHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			return
 		}
 
+		addr := conn.RemoteAddr().String()
 		defer func() {
 			conn.Close()
-			delete(UserOnlineWsMap, req.UserID)
-			svcCtx.Redis.HDel("online", fmt.Sprintf("%d", req.UserID))
+
+			userWsInfo, ok := UserOnlineWsMap[req.UserID]
+			if ok {
+				// 删除的是推出的那个ws信息
+				delete(userWsInfo.WsClientMap, addr)
+			}
+
+			if userWsInfo != nil && len(userWsInfo.WsClientMap) == 0 {
+				// 用户全退出了
+				delete(UserOnlineWsMap, req.UserID)
+				svcCtx.Redis.HDel("online", fmt.Sprintf("%d", req.UserID))
+			}
+
 		}()
 		//调用户服务，获取当前用户信息
 		res, err := svcCtx.UserRpc.UserInfo(context.Background(), &user_rpc.UserInfoRequest{
@@ -75,7 +87,6 @@ func chatHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			return
 		}
 
-		addr := conn.RemoteAddr().String()
 		userWsInfo, ok := UserOnlineWsMap[req.UserID]
 		if !ok {
 			// 代表这个用户第一次来
