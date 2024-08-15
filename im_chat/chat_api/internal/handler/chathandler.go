@@ -23,11 +23,12 @@ import (
 )
 
 type UserWsInfo struct {
-	UserInfo user_models.UserModel //用户信息
-	Conn     *websocket.Conn       // 用户的ws连接对象
+	UserInfo    user_models.UserModel      //用户信息
+	WsClientMap map[string]*websocket.Conn // 这个用户管理的所有ws客户端
+	CurrenConn  *websocket.Conn            // 当前的连接对象
 }
 
-var UserOnlineWsMap = map[uint]UserWsInfo{}
+var UserOnlineWsMap = map[uint]*UserWsInfo{}
 
 func chatHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -74,12 +75,27 @@ func chatHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			return
 		}
 
-		var userWsInfo = UserWsInfo{
-			UserInfo: userInfo,
-			Conn:     conn,
+		addr := conn.RemoteAddr().String()
+		userWsInfo, ok := UserOnlineWsMap[req.UserID]
+		if !ok {
+			// 代表这个用户第一次来
+			userWsInfo = &UserWsInfo{
+				UserInfo: userInfo,
+				WsClientMap: map[string]*websocket.Conn{
+					addr: conn,
+				},
+				CurrenConn: conn, // 当前的连接对象
+			}
+			UserOnlineWsMap[req.UserID] = userWsInfo
+		}
+		_, ok1 := userWsInfo.WsClientMap[addr]
+		if !ok1 {
+			// 代表这个用户二开及以上
+			UserOnlineWsMap[req.UserID].WsClientMap[addr] = conn
+			// 把当前连接对象更换
+			UserOnlineWsMap[req.UserID].CurrenConn = conn
 		}
 
-		UserOnlineWsMap[req.UserID] = userWsInfo
 		// 把在线的用户存入redis
 		svcCtx.Redis.HSet("online", fmt.Sprintf("%d", req.UserID), req.UserID)
 
@@ -110,7 +126,8 @@ func chatHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 				// 判断用户是否开了好友上线提示功能
 				if friend.UserInfo.UserConfModel.FriendOnline {
 					// 好友上线了
-					friend.Conn.WriteMessage(websocket.TextMessage, []byte(text))
+					//friend.Conn.WriteMessage(websocket.TextMessage, []byte(text))
+					sendWsMapMsg(friend.WsClientMap, []byte(text))
 				}
 
 			}
@@ -367,6 +384,12 @@ type ChatRequest struct {
 	Msg       ctype.Msg `json:"msg"`
 }
 
+func sendWsMapMsg(wsMap map[string]*websocket.Conn, byteData []byte) {
+	for _, conn := range wsMap {
+		conn.WriteMessage(websocket.TextMessage, byteData)
+	}
+}
+
 type ChatResponse struct {
 	ID        uint           `json:"id"`
 	IsMe      bool           `json:"isMe"`
@@ -399,7 +422,9 @@ func InsertMsgByChat(db *gorm.DB, sendUserID uint, revUserID uint, msg ctype.Msg
 		if !ok {
 			return
 		}
-		SendTipErrMsg(sendUser.Conn, "消息保存失败")
+		// todo 只会给最新的人, 发送错误消息, 但不一定是最新的人报的错
+		SendTipErrMsg(sendUser.CurrenConn, "消息保存失败")
+
 	}
 	return chatModel.ID
 }
@@ -430,7 +455,8 @@ func SendMsgByUser(svcCtx *svc.ServiceContext, sendUserID uint, revUserID uint, 
 			Avatar:   revUser.UserInfo.Avatar,
 		}
 		byteData, _ := json.Marshal(resp)
-		revUser.Conn.WriteMessage(websocket.TextMessage, byteData)
+		//revUser.Conn.WriteMessage(websocket.TextMessage, byteData)
+		sendWsMapMsg(revUser.WsClientMap, byteData)
 		return
 	}
 
@@ -469,7 +495,8 @@ func SendMsgByUser(svcCtx *svc.ServiceContext, sendUserID uint, revUserID uint, 
 	resp.IsMe = true
 
 	byteData, _ := json.Marshal(resp)
-	sendUser.Conn.WriteMessage(websocket.TextMessage, byteData)
+	//sendUser.Conn.WriteMessage(websocket.TextMessage, byteData)
+	sendWsMapMsg(sendUser.WsClientMap, byteData)
 
 	//if ok1 && ok2 && sendUserID == revUserID{ // 自己加的判断是否为自己
 	//	resp.IsMe = true
@@ -480,7 +507,8 @@ func SendMsgByUser(svcCtx *svc.ServiceContext, sendUserID uint, revUserID uint, 
 		// 接受者在线
 		resp.IsMe = false
 		byteData, _ = json.Marshal(resp)
-		revUser.Conn.WriteMessage(websocket.TextMessage, byteData)
+		//revUser.Conn.WriteMessage(websocket.TextMessage, byteData)
+		sendWsMapMsg(revUser.WsClientMap, byteData)
 
 	}
 
