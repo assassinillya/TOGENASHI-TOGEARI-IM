@@ -154,6 +154,12 @@ func chatHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 				}
 			}
 
+			// 判断type 1-12
+			if !(request.Msg.Type >= 1 && request.Msg.Type <= 12) {
+				SendTipErrMsg(conn, "消息类型错误")
+				continue
+			}
+
 			// 判断是否是文件类型
 			switch request.Msg.Type {
 			case ctype.TextMsgType:
@@ -211,6 +217,13 @@ func chatHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 					SendTipErrMsg(conn, "消息不存在")
 					continue
 				}
+
+				//不能撤回已撤回的消息
+				if msgModel.MsgType == ctype.WithdrawMsgType {
+					SendTipErrMsg(conn, "撤回消息不能再撤回了")
+					continue
+				}
+
 				// 查找这个信息是不是自己发的
 				if msgModel.SendUserID != req.UserID {
 					SendTipErrMsg(conn, "只能撤回自己的消息")
@@ -227,18 +240,24 @@ func chatHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 				// 收到撤回请求之后, 服务端把原消息的类型改为撤回消息类型, 并且记录原消息
 				// 然后通知前端的收发方, 重新拉取聊天记录
 
-				var content = "xx 撤回了一条消息"
+				var content = "撤回了一条消息"
 				if userInfo.UserConfModel.RecallMessage != nil {
 					content = *userInfo.UserConfModel.RecallMessage
 				}
+				content = "你" + content
 
+				// 前端可以判断, 这个消息如果不是isMe, 就可以把你替换成对方的昵称
+				// 这里涉及一个循环引用的问题, originMsg里也包括了撤回信息导致无限循环
+				originMsg := msgModel.Msg
+				originMsg.WithdrawMsg = nil // 这里可能会循环引用, 所以拷贝了这个值并且把撤回消息置空了
 				svcCtx.DB.Model(&msgModel).Updates(chat_models.ChatModel{
+					MsgPreView: "[撤回消息] - " + content,
 					Msg: ctype.Msg{
 						Type: ctype.WithdrawMsgType,
 						WithdrawMsg: &ctype.WithdrawMsg{
 							Content:   content,
 							MsgID:     request.Msg.WithdrawMsg.MsgID,
-							OriginMsg: &msgModel.Msg,
+							OriginMsg: &originMsg,
 						},
 					},
 				})
@@ -247,7 +266,6 @@ func chatHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			case ctype.ReplyMsgType:
 				//回复消息
 				//先校验
-				// todo 这里MsgID拿不到始终为0
 				if request.Msg.ReplyMsg == nil || request.Msg.ReplyMsg.MsgID == 0 {
 					SendTipErrMsg(conn, "回复消息必填")
 					continue
@@ -287,9 +305,9 @@ func chatHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			}
 
 			// 先入库
-			msgID := InsertMsgByChat(svcCtx.DB, request.RevUserID, req.UserID, request.Msg)
+			msgID := InsertMsgByChat(svcCtx.DB, req.UserID, request.RevUserID, request.Msg)
 			// 判断目标用户在不在线 给发送双方都要发消息
-			SendMsgByUser(svcCtx, request.RevUserID, req.UserID, request.Msg, msgID)
+			SendMsgByUser(svcCtx, req.UserID, request.RevUserID, request.Msg, msgID)
 		}
 
 	}
@@ -338,7 +356,7 @@ func InsertMsgByChat(db *gorm.DB, sendUserID uint, revUserID uint, msg ctype.Msg
 }
 
 // SendMsgByUser 发消息 给谁发 谁发的
-func SendMsgByUser(svcCtx *svc.ServiceContext, revUserID uint, sendUserID uint, msg ctype.Msg, msgID uint) {
+func SendMsgByUser(svcCtx *svc.ServiceContext, sendUserID uint, revUserID uint, msg ctype.Msg, msgID uint) {
 
 	revUser, ok1 := UserOnlineWsMap[revUserID]
 	sendUser, ok2 := UserOnlineWsMap[sendUserID]

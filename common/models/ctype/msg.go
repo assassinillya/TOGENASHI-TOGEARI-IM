@@ -24,25 +24,34 @@ const (
 )
 
 type Msg struct {
-	Type         MsgType       `json:"type"`         // 消息类型 和 MsgType 一样
-	Content      *string       `json:"content"`      // 为1时使用
-	TextMsg      *TextMsg      `json:"textMsg"`      // 文本消息
-	ImageMsg     *ImageMsg     `json:"imageMsg"`     // 图片消息
-	VideoMsg     *VideoMsg     `json:"videoMsg"`     // 视频消息
-	FileMsg      *FileMsg      `json:"fileMsg"`      // 文件消息
-	VoiceMsg     *VoiceMsg     `json:"voiceMsg"`     // 语音消息
-	VoiceCallMsg *VoiceCallMsg `json:"voiceCallMsg"` // 语音通话
-	VideoCallMsg *VideoCallMsg `json:"videoCallMsg"` // 视频通话
-	WithdrawMsg  *WithdrawMsg  `json:"withdrawMsg"`  // 撤回消息
-	ReplyMsg     *ReplyMsg     `json:"replyMsg"`     // 回复消息
-	QuoteMsg     *QuoteMsg     `json:"quoteMsg"`     // 引用信息
-	AtMsg        *AtMsg        `json:"atMsg"`        // @用户的消息 群聊才有
-	TipMsg       *TipMsg       `json:"tipMsg"`       //提示消息，一般是不入库的
+	Type         MsgType       `json:"type"`                   // 消息类型 和 MsgType 一样
+	TextMsg      *TextMsg      `json:"textMsg,omitempty"`      // 文本消息
+	ImageMsg     *ImageMsg     `json:"imageMsg,omitempty"`     // 图片消息
+	VideoMsg     *VideoMsg     `json:"videoMsg,omitempty"`     // 视频消息
+	FileMsg      *FileMsg      `json:"fileMsg,omitempty"`      // 文件消息
+	VoiceMsg     *VoiceMsg     `json:"voiceMsg,omitempty"`     // 语音消息
+	VoiceCallMsg *VoiceCallMsg `json:"voiceCallMsg,omitempty"` // 语音通话
+	VideoCallMsg *VideoCallMsg `json:"videoCallMsg,omitempty"` // 视频通话
+	WithdrawMsg  *WithdrawMsg  `json:"withdrawMsg,omitempty"`  // 撤回消息
+	ReplyMsg     *ReplyMsg     `json:"replyMsg,omitempty"`     // 回复消息
+	QuoteMsg     *QuoteMsg     `json:"quoteMsg,omitempty"`     // 引用信息
+	AtMsg        *AtMsg        `json:"atMsg,omitempty"`        // @用户的消息 群聊才有
+	TipMsg       *TipMsg       `json:"tipMsg,omitempty"`       //提示消息，一般是不入库的
 }
 
 // Scan 入库的数据
 func (c *Msg) Scan(val interface{}) error {
-	return json.Unmarshal(val.([]byte), c)
+	err := json.Unmarshal(val.([]byte), c)
+	if err != nil {
+		return err
+	}
+	if c.Type == WithdrawMsgType {
+		//如果这个消息是撤回消息，那就不要把原消息带出去
+		if c.WithdrawMsg != nil {
+			c.WithdrawMsg.OriginMsg = nil
+		}
+	}
+	return nil
 }
 
 // Value 入库的数据
@@ -94,9 +103,9 @@ type VideoCallMsg struct {
 
 // WithdrawMsg 撤回消息
 type WithdrawMsg struct {
-	Content   string `json:"content"` // 撤回的提示词
-	MsgID     uint   `json:"msgID"`   // 需要撤回的消息ID 入参必填
-	OriginMsg *Msg   `json:"-"`       //原消息
+	Content   string `json:"content"`   // 撤回的提示词
+	MsgID     uint   `json:"msgID"`     // 需要撤回的消息ID 入参必填
+	OriginMsg *Msg   `json:"originMsg"` //原消息
 }
 
 type ReplyMsg struct {
