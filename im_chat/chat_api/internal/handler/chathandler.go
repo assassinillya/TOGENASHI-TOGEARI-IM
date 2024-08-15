@@ -252,6 +252,7 @@ func chatHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 				originMsg.WithdrawMsg = nil // 这里可能会循环引用, 所以拷贝了这个值并且把撤回消息置空了
 				svcCtx.DB.Model(&msgModel).Updates(chat_models.ChatModel{
 					MsgPreView: "[撤回消息] - " + content,
+					MsgType:    ctype.WithdrawMsgType,
 					Msg: ctype.Msg{
 						Type: ctype.WithdrawMsgType,
 						WithdrawMsg: &ctype.WithdrawMsg{
@@ -278,6 +279,12 @@ func chatHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 					continue
 				}
 
+				// 不能回复撤回消息
+				if msgModel.MsgType == ctype.WithdrawMsgType {
+					SendTipErrMsg(conn, "该消息已撤回")
+					continue
+				}
+
 				// 回复的消息必须是你自己或者和你聊天的这个人发出来的
 
 				// 原消息必须是 当前你要和对方聊的 原消息就会有一个发送人id和接收人id, 我们的聊天也会有一个发送人id和接收人id
@@ -301,7 +308,50 @@ func chatHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 				request.Msg.ReplyMsg.UserID = msgModel.SendUserID
 				request.Msg.ReplyMsg.UserNickName = userBaseInfo.NickName
 				request.Msg.ReplyMsg.OriginMsgDate = msgModel.CreatedAt
+			case ctype.QuoteMsgType:
+				// 引用消息
+				// 先校验
+				if request.Msg.QuoteMsg == nil || request.Msg.QuoteMsg.MsgID == 0 {
+					SendTipErrMsg(conn, "引用消息必填")
+					continue
+				}
+				//找这个原消息
+				var msgModel chat_models.ChatModel
+				err = svcCtx.DB.Take(&msgModel, request.Msg.QuoteMsg.MsgID).Error
+				if err != nil {
+					SendTipErrMsg(conn, "消息不存在")
+					continue
+				}
 
+				// 不能回复撤回消息
+				if msgModel.MsgType == ctype.WithdrawMsgType {
+					SendTipErrMsg(conn, "该消息已撤回")
+					continue
+				}
+
+				// 回复的消息必须是你自己或者和你聊天的这个人发出来的
+
+				// 原消息必须是 当前你要和对方聊的 原消息就会有一个发送人id和接收人id, 我们的聊天也会有一个发送人id和接收人id
+				// 因为回复消息可以回复自己的, 也可以回复别人的
+				// 这里注意打开的会话必须是与别人的对话才能回复, 如果和自己对话回复别人的对话是不可以的
+				if !((msgModel.SendUserID == req.UserID && msgModel.RevUserID == request.RevUserID) ||
+					(msgModel.SendUserID == request.RevUserID && msgModel.RevUserID == req.UserID)) {
+					SendTipErrMsg(conn, "只能回复自己或者对方的信息")
+					continue
+				}
+
+				userBaseInfo, err3 := svcCtx.UserRpc.UserBaseInfo(context.Background(), &user_rpc.UserBaseInfoRequest{
+					UserId: uint32(msgModel.SendUserID),
+				})
+				if err3 != nil {
+					logx.Error(err3)
+					return
+				}
+
+				request.Msg.QuoteMsg.Msg = &msgModel.Msg
+				request.Msg.QuoteMsg.UserID = msgModel.SendUserID
+				request.Msg.QuoteMsg.UserNickName = userBaseInfo.NickName
+				request.Msg.QuoteMsg.OriginMsgDate = msgModel.CreatedAt
 			}
 
 			// 先入库
