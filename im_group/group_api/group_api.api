@@ -1,6 +1,6 @@
 syntax = "v1"
 
-type GroupCreateRequest {
+type groupCreateRequest {
 	UserID     uint   `header:"User-ID"`
 	Mode       int8   `json:"mode,optional"` // 模式 1 直接创建模式 2 选人创建模式
 	Name       string `json:"name,optional"` // 群聊名字
@@ -9,10 +9,35 @@ type GroupCreateRequest {
 	UserIDList []uint `json:"userIdList,optional"` // 用户id列表
 }
 
-type GroupCreateResponse {}
+type groupCreateResponse {}
+
+type groupInfoRequest {
+	UserID uint `header:"User-ID"`
+	ID     uint `path:"id"` //群id
+}
+
+type UserInfo {
+	UserID   uint   `header:"User-ID"`
+	Avatar   string `json:"avatar"`
+	Nickname string `json:"nickname"`
+}
+
+type groupInfoResponse {
+	GroupID           uint       `json:"groupId"` //群id
+	Title             string     `json:"title"` //群名称
+	Abstract          string     `json:"abstract"` //群简介
+	Avatar            string     `json:"avatar"` //群头像
+	Creator           UserInfo   `json:"creator"` //群主
+	MemberCount       int        `json:"memberCount"` //群聊用户总数
+	MemberOnlineCount int        `json:"memberOnlineCount"` //在线用户数量
+	AdminList         []UserInfo `json:"adminList"` //管理员列表
+}
 
 service group {
-	@handler group_create
-	post /api/group/group (GroupCreateRequest) returns (GroupCreateResponse)
+	@handler groupCreate
+	post /api/group/group (groupCreateRequest) returns (groupCreateResponse) // 创建群聊
+
+	@handler groupInfo
+	get /api/group/group/:id (groupInfoRequest) returns (groupInfoResponse) // 群信息
 } //goctl api go -api group_api.api -dir . --home ../../template
 
