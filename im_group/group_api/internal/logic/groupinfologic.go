@@ -3,11 +3,12 @@ package logic
 import (
 	"context"
 	"errors"
-	"im_server/im_group/group_models"
-	"im_server/im_user/user_rpc/users"
-
 	"im_server/im_group/group_api/internal/svc"
 	"im_server/im_group/group_api/internal/types"
+	"im_server/im_group/group_models"
+	"im_server/im_group/group_rpc/types/group_rpc"
+	"im_server/im_user/user_rpc/users"
+	"im_server/utils/set"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -28,6 +29,19 @@ func NewGroupInfoLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GroupIn
 
 func (l *GroupInfoLogic) GroupInfo(req *types.GroupInfoRequest) (resp *types.GroupInfoResponse, err error) {
 	// 能调用这个接口的只能是这个群的成员
+	isInGroup, err := l.svcCtx.GroupRpc.IsInGroup(context.Background(), &group_rpc.IsInGroupRequest{
+		UserId:  uint32(req.UserID),
+		GroupId: uint32(req.ID),
+	})
+
+	if err != nil {
+		logx.Error(err)
+		return nil, errors.New("并非该群成员")
+	}
+
+	if !isInGroup.IsInGroup {
+		return nil, errors.New("并非该群成员")
+	}
 
 	var groupModel group_models.GroupModel
 	err = l.svcCtx.DB.Preload("MemberList").Take(&groupModel, req.ID).Error
@@ -46,7 +60,9 @@ func (l *GroupInfoLogic) GroupInfo(req *types.GroupInfoRequest) (resp *types.Gro
 
 	// 查用户列表信息
 	var userIDList []uint32
+	var userAllIDList []uint32
 	for _, model := range groupModel.MemberList {
+		userAllIDList = append(userAllIDList, uint32(model.UserID))
 		if model.Role == 3 {
 			continue
 		}
@@ -62,6 +78,15 @@ func (l *GroupInfoLogic) GroupInfo(req *types.GroupInfoRequest) (resp *types.Gro
 
 	var creator types.UserInfo
 	var adminList = make([]types.UserInfo, 0)
+
+	// 查在线用户数量
+	userOnlineResp, err := l.svcCtx.UserRpc.UserOnlineList(context.Background(), &users.UserOnlineRequest{})
+	if err == nil {
+		// 算群成员和总的在线人数群成员, 取交集
+		slice := set.Intersect(userAllIDList, userOnlineResp.UserIdList)
+		resp.MemberOnlineCount = len(slice)
+	}
+
 	for _, model := range groupModel.MemberList {
 		if model.Role == 1 {
 			creator = types.UserInfo{
@@ -81,9 +106,6 @@ func (l *GroupInfoLogic) GroupInfo(req *types.GroupInfoRequest) (resp *types.Gro
 	}
 	resp.Creator = creator
 	resp.AdminList = adminList
-
-	// 查在线用户数量
-	// 用户服务需要去写一个在线的用户列表的接口的方法
 
 	return
 }

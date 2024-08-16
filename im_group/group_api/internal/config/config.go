@@ -11,10 +11,11 @@ type Config struct {
 	Mysql struct {
 		DataSource string
 	}
-	UserRpc zrpc.RpcClientConf
-	Redis   struct {
+	Redis struct {
 		Addr string
 		Pwd  string
 		DB   int
 	}
+	UserRpc  zrpc.RpcClientConf
+	GroupRpc zrpc.RpcClientConf
 }

@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package group_rpc;
+option go_package = "./group_rpc";
+
+message IsInGroupRequest{
+  uint32 user_id = 1;
+  uint32 group_id = 2;
+}
+
+message IsInGroupResponse{
+  bool is_in_group = 1;
+}
+
+service Groups{
+  rpc IsInGroup (IsInGroupRequest)returns(IsInGroupResponse);// 是否在群里
+}// goctl rpc protoc group_rpc.proto --go_out=./types --go-grpc_out=./types --zrpc_out=.

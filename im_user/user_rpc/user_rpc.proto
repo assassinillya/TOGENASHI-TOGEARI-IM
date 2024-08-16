@@ -63,10 +63,19 @@ message FriendListResponse{
 message UserBaseInfoRequest {
   uint32 user_id = 1;
 }
+
 message UserBaseInfoResponse {
   uint32 user_id = 1;
   string nick_name = 2;
   string avatar = 3;
+}
+
+message UserOnlineRequest {
+
+}
+
+message UserOnlineResponse {
+  repeated uint32 user_id_list = 1;
 }
 
 service Users {
@@ -76,6 +85,7 @@ service Users {
   rpc UserListInfo(UserListInfoRequest) returns(UserListInfoResponse);// 用户列表信息
   rpc IsFriend(IsFriendRequest) returns(IsFriendResponse);// 是否为好友
   rpc FriendList(FriendListRequest) returns(FriendListResponse);// 好友列表
+  rpc UserOnlineList(UserOnlineRequest) returns(UserOnlineResponse);// 在线用户id列表
 }
 
 // goctl rpc protoc user_rpc.proto --go_out=./types --go-grpc_out=./types --zrpc_out=.

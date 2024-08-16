@@ -4,7 +4,7 @@ import (
 	"github.com/go-redis/redis"
 	"gorm.io/gorm"
 	"im_server/core"
-	"im_server/im_user/user_rpc/internal/config"
+	"im_server/im_group/group_rpc/internal/config"
 )
 
 type ServiceContext struct {
@@ -14,8 +14,8 @@ type ServiceContext struct {
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
-	client := core.InitRedis(c.RedisConf.Addr, c.RedisConf.Pwd, c.RedisConf.DB)
 	mysqlDb := core.InitGorm(c.Mysql.DataSource)
+	client := core.InitRedis(c.RedisConf.Addr, c.RedisConf.Pwd, c.RedisConf.DB)
 	return &ServiceContext{
 		RedisConf: client,
 		Config:    c,

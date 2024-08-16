@@ -10,3 +10,7 @@ Log:
   Encoding: plain
   Stat: false
   TimeFormat: 2006-01-02 15:04:05
+RedisConf:
+  Addr: 120.78.234.30:6379
+  Pwd: "123456"
+  DB: 0
