@@ -3,11 +3,14 @@ package logic
 import (
 	"context"
 	"errors"
+	"fmt"
 	"im_server/im_group/group_api/internal/svc"
 	"im_server/im_group/group_api/internal/types"
 	"im_server/im_group/group_models"
 	"im_server/im_user/user_rpc/types/user_rpc"
+	"im_server/utils/set"
 	"strings"
+	"time"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -29,10 +32,13 @@ func NewGroup_createLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Grou
 func (l *Group_createLogic) Group_create(req *types.GroupCreateRequest) (resp *types.GroupCreateResponse, err error) {
 	var groupModel = group_models.GroupModel{
 		Creator:      req.UserID, // 自己创建的群，自己就是群主
+		Abstract:     fmt.Sprintf("本群创建于%s: 群主很懒, 什么都没有留下", time.Now().Format(time.DateOnly)),
 		IsSearch:     false,
 		Verification: 2,
 		Size:         50,
 	}
+
+	var groupUserList = []uint{req.UserID}
 
 	switch req.Mode {
 	case 1: // 直接创建模式
@@ -57,7 +63,28 @@ func (l *Group_createLogic) Group_create(req *types.GroupCreateRequest) (resp *t
 		var userIDList = []uint32{uint32(req.UserID)} // 先把自己放进去
 		for _, u := range req.UserIDList {
 			userIDList = append(userIDList, uint32(u))
+			groupUserList = append(groupUserList, u)
 		}
+
+		userFriendResponse, err2 := l.svcCtx.UserRpc.FriendList(context.Background(), &user_rpc.FriendListRequest{
+			User: uint32(req.UserID),
+		})
+		if err2 != nil {
+			logx.Error(err2)
+			return nil, errors.New("用户服务错误")
+		}
+
+		var friendIDList []uint
+		for _, i2 := range userFriendResponse.FriendList {
+			friendIDList = append(friendIDList, uint(i2.UserId))
+		}
+
+		// 判断他们两个是不是一致的
+		slice := set.Difference(req.UserIDList, friendIDList)
+		if len(slice) != 0 {
+			return nil, errors.New("你选择的好友中有人不是你的好友")
+		}
+
 		userListResponse, err1 := l.svcCtx.UserRpc.UserListInfo(context.Background(), &user_rpc.UserListInfoRequest{
 			UserIdList: userIDList,
 		})
@@ -76,6 +103,9 @@ func (l *Group_createLogic) Group_create(req *types.GroupCreateRequest) (resp *t
 			nameList = append(nameList, info.NickName)
 		}
 		groupModel.Title = strings.Join(nameList, "、") + "的群聊"
+
+	default:
+		return nil, errors.New("不支持的模式")
 	}
 
 	// 群头像
@@ -85,6 +115,25 @@ func (l *Group_createLogic) Group_create(req *types.GroupCreateRequest) (resp *t
 	if err != nil {
 		logx.Error(err)
 		return nil, errors.New("创建群组失败")
+	}
+
+	var members []group_models.GroupMemberModel
+	for i, u := range groupUserList {
+		memberModel := group_models.GroupMemberModel{
+			GroupID: groupModel.ID,
+			UserID:  u,
+			Role:    3,
+		}
+		if i == 0 {
+			memberModel.Role = 1
+		}
+		members = append(members, memberModel)
+	}
+
+	err = l.svcCtx.DB.Create(&members).Error
+	if err != nil {
+		logx.Error(err)
+		return nil, errors.New("群成员添加失败")
 	}
 
 	return

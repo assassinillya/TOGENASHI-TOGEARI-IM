@@ -4,10 +4,10 @@ package types
 type GroupCreateRequest struct {
 	UserID     uint   `header:"User-ID"`
 	Mode       int8   `json:"mode,optional"` // 模式 1 直接创建模式 2 选人创建模式
-	Name       string `json:"name"`          // 群聊名字
-	IsSearch   bool   `json:"isSearch"`
-	Size       int    `json:"size"`       // 群规模
-	UserIDList []uint `json:"userIdList"` // 用户id列表
+	Name       string `json:"name,optional"` // 群聊名字
+	IsSearch   bool   `json:"isSearch,optional"`
+	Size       int    `json:"size,optional"`       // 群规模
+	UserIDList []uint `json:"userIdList,optional"` // 用户id列表
 }
 
 type GroupCreateResponse struct {
