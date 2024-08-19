@@ -56,6 +56,24 @@ type GroupInfoResponse struct {
 	Role              int8       `json:"role"`              // 群角色 1 群主 2 管理员 3 群成员
 }
 
+type GroupMemberAddRequest struct {
+	UserID   uint `header:"User-ID"`
+	ID       uint `form:"id"`       //群id
+	MemberID uint `form:"memberId"` //成员id
+}
+
+type GroupMemberAddResponse struct {
+}
+
+type GroupMemberRemoveRequest struct {
+	UserID   uint `header:"User-ID"`
+	ID       uint `form:"id"`       //群id
+	MemberID uint `form:"memberId"` //成员id
+}
+
+type GroupMemberRemoveResponse struct {
+}
+
 type GroupMemberRequest struct {
 	UserID uint   `header:"User-ID"`
 	ID     uint   `form:"id"` //群id

@@ -90,6 +90,22 @@ type groupMemberResponse {
 	Count int               `json:"count"`
 }
 
+type groupMemberRemoveRequest {
+	UserID   uint `header:"User-ID"`
+	ID       uint `form:"id"` //群id
+	MemberID uint `form:"memberId"` //成员id
+}
+
+type groupMemberRemoveResponse {}
+
+type groupMemberAddRequest {
+	UserID   uint `header:"User-ID"`
+	ID       uint `form:"id"` //群id
+	MemberID uint `form:"memberId"` //成员id
+}
+
+type groupMemberAddResponse {}
+
 service group {
 	@handler groupCreate
 	post /api/group/group (groupCreateRequest) returns (groupCreateResponse) // 创建群聊
@@ -105,5 +121,11 @@ service group {
 
 	@handler groupMember
 	get /api/group/member (groupMemberRequest) returns (groupMemberResponse) // 群成员列表
+
+	@handler groupMemberRemove
+	delete /api/group/member (groupMemberRemoveRequest) returns (groupMemberRemoveResponse) // 移出群员
+
+	@handler groupMemberAdd
+	post /api/group/member (groupMemberAddRequest) returns (groupMemberAddResponse) // 邀请成员入群
 } //goctl api go -api group_api.api -dir . --home ../../template
 
