@@ -42,6 +42,7 @@ type GroupInfoResponse struct {
 	MemberCount       int        `json:"memberCount"`       //群聊用户总数
 	MemberOnlineCount int        `json:"memberOnlineCount"` //在线用户数量
 	AdminList         []UserInfo `json:"adminList"`         //管理员列表
+	Role              int8       `json:"role"`              // 群角色 1 群主 2 管理员 3 群成员
 }
 
 type GroupRemoveRequest struct {

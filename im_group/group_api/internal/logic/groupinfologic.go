@@ -6,7 +6,6 @@ import (
 	"im_server/im_group/group_api/internal/svc"
 	"im_server/im_group/group_api/internal/types"
 	"im_server/im_group/group_models"
-	"im_server/im_group/group_rpc/types/group_rpc"
 	"im_server/im_user/user_rpc/users"
 	"im_server/utils/set"
 
@@ -28,26 +27,22 @@ func NewGroupInfoLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GroupIn
 }
 
 func (l *GroupInfoLogic) GroupInfo(req *types.GroupInfoRequest) (resp *types.GroupInfoResponse, err error) {
-	// 能调用这个接口的只能是这个群的成员
-	isInGroup, err := l.svcCtx.GroupRpc.IsInGroup(context.Background(), &group_rpc.IsInGroupRequest{
-		UserId:  uint32(req.UserID),
-		GroupId: uint32(req.ID),
-	})
-
-	if err != nil {
-		logx.Error(err)
-		return nil, errors.New("并非该群成员")
-	}
-
-	if !isInGroup.IsInGroup {
-		return nil, errors.New("并非该群成员")
-	}
 
 	var groupModel group_models.GroupModel
 	err = l.svcCtx.DB.Preload("MemberList").Take(&groupModel, req.ID).Error
 	if err != nil {
 		return nil, errors.New("群不存在")
 	}
+
+	// 能调用这个接口的只能是这个群的成员
+	var member group_models.GroupMemberModel
+	err = l.svcCtx.DB.Take(&member, "user_id = ? and group_id = ?", req.UserID, req.ID).Error
+
+	if err != nil {
+		logx.Error(err)
+		return nil, errors.New("并非该群成员")
+	}
+
 	// 算在线用户总数
 
 	resp = &types.GroupInfoResponse{
@@ -56,6 +51,7 @@ func (l *GroupInfoLogic) GroupInfo(req *types.GroupInfoRequest) (resp *types.Gro
 		Abstract:    groupModel.Abstract,
 		MemberCount: len(groupModel.MemberList),
 		Avatar:      groupModel.Avatar,
+		Role:        member.Role,
 	}
 
 	// 查用户列表信息
