@@ -65,6 +65,16 @@ type GroupMemberAddRequest struct {
 type GroupMemberAddResponse struct {
 }
 
+type GroupMemberNicknameUpdateRequest struct {
+	UserID   uint   `header:"User-ID"`
+	ID       uint   `json:"id"`       //群id
+	MemberID uint   `json:"memberId"` //成员id
+	Nickname string `json:"nickname"` //成员昵称
+}
+
+type GroupMemberNicknameUpdateResponse struct {
+}
+
 type GroupMemberRemoveRequest struct {
 	UserID   uint `header:"User-ID"`
 	ID       uint `form:"id"`       //群id

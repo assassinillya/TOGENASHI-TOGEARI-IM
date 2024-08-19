@@ -47,6 +47,11 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Path:    "/api/group/member",
 				Handler: groupMemberAddHandler(serverCtx),
 			},
+			{
+				Method:  http.MethodPut,
+				Path:    "/api/group/member/nickname",
+				Handler: groupMemberNicknameUpdateHandler(serverCtx),
+			},
 		},
 	)
 }
