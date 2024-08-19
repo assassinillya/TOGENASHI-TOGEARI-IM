@@ -57,9 +57,9 @@ type GroupInfoResponse struct {
 }
 
 type GroupMemberAddRequest struct {
-	UserID   uint `header:"User-ID"`
-	ID       uint `form:"id"`       //群id
-	MemberID uint `form:"memberId"` //成员id
+	UserID       uint   `header:"User-ID"`
+	ID           uint   `json:"id"`           //群id
+	MemberIDList []uint `json:"memberIdList"` //成员id列表
 }
 
 type GroupMemberAddResponse struct {
