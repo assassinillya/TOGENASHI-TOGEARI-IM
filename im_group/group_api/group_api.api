@@ -42,7 +42,7 @@ type VerificationQuestion {
 	Answer3  *string `json:"answer3,optional" conf:"answer3"`
 }
 
-type GroupUpdateRequest {
+type groupUpdateRequest {
 	UserID               uint                  `header:"User-ID"`
 	ID                   uint                  `json:"id"` // 群id
 	IsSearch             *bool                 `json:"isSearch,optional" conf:"is_search"` // 是否可以被搜索
@@ -56,7 +56,14 @@ type GroupUpdateRequest {
 	VerificationQuestion *VerificationQuestion `json:"verificationQuestion,optional" conf:"verification_question"`
 }
 
-type GroupUpdateResponse {}
+type groupUpdateResponse {}
+
+type groupRemoveRequest {
+	UserID uint `header:"User-ID"`
+	ID     uint `path:"id"` //群id
+}
+
+type groupRemoveResponse {}
 
 service group {
 	@handler groupCreate
@@ -66,6 +73,9 @@ service group {
 	get /api/group/group/:id (groupInfoRequest) returns (groupInfoResponse) // 群信息
 
 	@handler groupUpdate
-	put /api/group/groupUpdate (GroupUpdateRequest) returns (GroupUpdateResponse)
+	put /api/group/groupUpdate (groupUpdateRequest) returns (groupUpdateResponse) // 群更新
+
+	@handler groupRemove
+	delete /api/group/group/:id (groupRemoveRequest) returns (groupRemoveResponse) // 群更新
 } //goctl api go -api group_api.api -dir . --home ../../template
 
