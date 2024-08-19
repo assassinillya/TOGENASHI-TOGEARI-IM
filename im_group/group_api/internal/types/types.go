@@ -97,6 +97,16 @@ type GroupMemberResponse struct {
 	Count int               `json:"count"`
 }
 
+type GroupMemberRoleUpdateRequest struct {
+	UserID   uint `header:"User-ID"`
+	ID       uint `json:"id"`       //群id
+	MemberID uint `json:"memberId"` //成员id
+	Role     int8 `json:"role"`
+}
+
+type GroupMemberRoleUpdateResponse struct {
+}
+
 type GroupRemoveRequest struct {
 	UserID uint `header:"User-ID"`
 	ID     uint `path:"id"` //群id

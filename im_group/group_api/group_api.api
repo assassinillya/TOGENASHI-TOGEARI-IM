@@ -115,6 +115,15 @@ type groupMemberNicknameUpdateRequest {
 
 type groupMemberNicknameUpdateResponse {}
 
+type groupMemberRoleUpdateRequest {
+	UserID   uint `header:"User-ID"`
+	ID       uint `json:"id"` //群id
+	MemberID uint `json:"memberId"` //成员id
+	Role     int8 `json:"role"`
+}
+
+type groupMemberRoleUpdateResponse {}
+
 service group {
 	@handler groupCreate
 	post /api/group/group (groupCreateRequest) returns (groupCreateResponse) // 创建群聊
@@ -139,5 +148,8 @@ service group {
 
 	@handler groupMemberNicknameUpdate
 	put /api/group/member/nickname (groupMemberNicknameUpdateRequest) returns (groupMemberNicknameUpdateResponse) // 修改群成员昵称
+
+	@handler groupMemberRoleUpdate
+	put /api/group/member/role (groupMemberRoleUpdateRequest) returns (groupMemberRoleUpdateResponse) // 变更管理员角色
 } //goctl api go -api group_api.api -dir . --home ../../template
 
