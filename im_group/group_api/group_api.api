@@ -66,6 +66,30 @@ type groupRemoveRequest {
 
 type groupRemoveResponse {}
 
+type groupMemberRequest {
+	UserID uint   `header:"User-ID"`
+	ID     uint   `form:"id"` //群id
+	Page   int    `form:"page,optional"`
+	Limit  int    `form:"limit,optional"`
+	Sort   string `form:"sort,optional"`
+}
+
+type GroupMemberInfo {
+	UserID         uint   `json:"userId"`
+	UserNickname   string `json:"userNickname"`
+	Avatar         string `json:"avatar"`
+	IsOnline       bool   `json:"isOnline"`
+	Role           int8   `json:"role"`
+	MemberNickname string `json:"memberNickname"`
+	CreatedAt      string `json:"createdAt"`
+	NewMsgDate     string `json:"newMsgDate"`
+}
+
+type groupMemberResponse {
+	List  []GroupMemberInfo `json:"list"`
+	Count int               `json:"count"`
+}
+
 service group {
 	@handler groupCreate
 	post /api/group/group (groupCreateRequest) returns (groupCreateResponse) // 创建群聊
@@ -77,6 +101,9 @@ service group {
 	put /api/group/groupUpdate (groupUpdateRequest) returns (groupUpdateResponse) // 群更新
 
 	@handler groupRemove
-	delete /api/group/group/:id (groupRemoveRequest) returns (groupRemoveResponse) // 群更新
+	delete /api/group/group/:id (groupRemoveRequest) returns (groupRemoveResponse) // 群解散
+
+	@handler groupMember
+	get /api/group/member (groupMemberRequest) returns (groupMemberResponse) // 群成员列表
 } //goctl api go -api group_api.api -dir . --home ../../template
 
