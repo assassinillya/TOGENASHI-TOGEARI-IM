@@ -170,3 +170,13 @@ type GroupUpdateRequest struct {
 
 type GroupUpdateResponse struct {
 }
+
+type GroupValidRequest struct {
+	UserID  uint `header:"User-ID"`
+	GroupID uint `json:"groupID"`
+}
+
+type GroupValidResponse struct {
+	Verification         int8                 `json:"verification"`         // 好友验证
+	VerificationQuestion VerificationQuestion `json:"verificationQuestion"` // 问题和答案, 答案不返回
+}
