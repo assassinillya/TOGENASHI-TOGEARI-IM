@@ -62,6 +62,11 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Path:    "/api/group/member/role",
 				Handler: groupMemberRoleUpdateHandler(serverCtx),
 			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/api/group/search",
+				Handler: groupSearchHandler(serverCtx),
+			},
 		},
 	)
 }

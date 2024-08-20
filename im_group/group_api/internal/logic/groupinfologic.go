@@ -76,7 +76,7 @@ func (l *GroupInfoLogic) GroupInfo(req *types.GroupInfoRequest) (resp *types.Gro
 	var adminList = make([]types.UserInfo, 0)
 
 	// 查在线用户数量
-	userOnlineResp, err := l.svcCtx.UserRpc.UserOnlineList(context.Background(), &users.UserOnlineRequest{})
+	userOnlineResp, err := l.svcCtx.UserRpc.UserOnlineList(context.Background(), &users.UserOnlineListRequest{})
 	if err == nil {
 		// 算群成员和总的在线人数群成员, 取交集
 		slice := set.Intersect(userAllIDList, userOnlineResp.UserIdList)

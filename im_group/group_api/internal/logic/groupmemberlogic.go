@@ -91,7 +91,7 @@ func (l *GroupMemberLogic) GroupMember(req *types.GroupMemberRequest) (resp *typ
 	}
 
 	var userOnlineMap = map[uint]bool{}
-	userOnlineResponse, err := l.svcCtx.UserRpc.UserOnlineList(context.Background(), &user_rpc.UserOnlineRequest{})
+	userOnlineResponse, err := l.svcCtx.UserRpc.UserOnlineList(context.Background(), &user_rpc.UserOnlineListRequest{})
 	if err == nil {
 		for _, u := range userOnlineResponse.UserIdList {
 			userOnlineMap[uint(u)] = true

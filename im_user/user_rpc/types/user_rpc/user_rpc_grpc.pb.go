@@ -38,7 +38,7 @@ type UsersClient interface {
 	UserListInfo(ctx context.Context, in *UserListInfoRequest, opts ...grpc.CallOption) (*UserListInfoResponse, error)
 	IsFriend(ctx context.Context, in *IsFriendRequest, opts ...grpc.CallOption) (*IsFriendResponse, error)
 	FriendList(ctx context.Context, in *FriendListRequest, opts ...grpc.CallOption) (*FriendListResponse, error)
-	UserOnlineList(ctx context.Context, in *UserOnlineRequest, opts ...grpc.CallOption) (*UserOnlineResponse, error)
+	UserOnlineList(ctx context.Context, in *UserOnlineListRequest, opts ...grpc.CallOption) (*UserOnlineListResponse, error)
 }
 
 type usersClient struct {
@@ -109,9 +109,9 @@ func (c *usersClient) FriendList(ctx context.Context, in *FriendListRequest, opt
 	return out, nil
 }
 
-func (c *usersClient) UserOnlineList(ctx context.Context, in *UserOnlineRequest, opts ...grpc.CallOption) (*UserOnlineResponse, error) {
+func (c *usersClient) UserOnlineList(ctx context.Context, in *UserOnlineListRequest, opts ...grpc.CallOption) (*UserOnlineListResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(UserOnlineResponse)
+	out := new(UserOnlineListResponse)
 	err := c.cc.Invoke(ctx, Users_UserOnlineList_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -129,7 +129,7 @@ type UsersServer interface {
 	UserListInfo(context.Context, *UserListInfoRequest) (*UserListInfoResponse, error)
 	IsFriend(context.Context, *IsFriendRequest) (*IsFriendResponse, error)
 	FriendList(context.Context, *FriendListRequest) (*FriendListResponse, error)
-	UserOnlineList(context.Context, *UserOnlineRequest) (*UserOnlineResponse, error)
+	UserOnlineList(context.Context, *UserOnlineListRequest) (*UserOnlineListResponse, error)
 	mustEmbedUnimplementedUsersServer()
 }
 
@@ -155,7 +155,7 @@ func (UnimplementedUsersServer) IsFriend(context.Context, *IsFriendRequest) (*Is
 func (UnimplementedUsersServer) FriendList(context.Context, *FriendListRequest) (*FriendListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method FriendList not implemented")
 }
-func (UnimplementedUsersServer) UserOnlineList(context.Context, *UserOnlineRequest) (*UserOnlineResponse, error) {
+func (UnimplementedUsersServer) UserOnlineList(context.Context, *UserOnlineListRequest) (*UserOnlineListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UserOnlineList not implemented")
 }
 func (UnimplementedUsersServer) mustEmbedUnimplementedUsersServer() {}
@@ -280,7 +280,7 @@ func _Users_FriendList_Handler(srv interface{}, ctx context.Context, dec func(in
 }
 
 func _Users_UserOnlineList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UserOnlineRequest)
+	in := new(UserOnlineListRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -292,7 +292,7 @@ func _Users_UserOnlineList_Handler(srv interface{}, ctx context.Context, dec fun
 		FullMethod: Users_UserOnlineList_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UsersServer).UserOnlineList(ctx, req.(*UserOnlineRequest))
+		return srv.(UsersServer).UserOnlineList(ctx, req.(*UserOnlineListRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
