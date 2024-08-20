@@ -124,6 +124,23 @@ type groupMemberRoleUpdateRequest {
 
 type groupMemberRoleUpdateResponse {}
 
+type groupFriendsListRequest {
+	UserID uint `header:"User-ID"` //自己的id
+	ID     uint `form:"id"` //群id
+}
+
+type GroupFriendsResponse {
+	UserID    uint   `json:"userId"`
+	Avatar    string `json:"avatar"`
+	Nickname  string `json:"nickname"`
+	IsInGroup bool   `json:"isInGroup"` //是否在群里面
+}
+
+type groupFriendsListResponse {
+	Count int                    `json:"count"`
+	List  []GroupFriendsResponse `json:"list"`
+}
+
 service group {
 	@handler groupCreate
 	post /api/group/group (groupCreateRequest) returns (groupCreateResponse) // 创建群聊
@@ -151,5 +168,8 @@ service group {
 
 	@handler groupMemberRoleUpdate
 	put /api/group/member/role (groupMemberRoleUpdateRequest) returns (groupMemberRoleUpdateResponse) // 变更管理员角色
+
+	@handler groupFriendsList
+	get /api/group/friends (groupFriendsListRequest) returns (groupFriendsListResponse) //群里哪些是我的好友
 } //goctl api go -api group_api.api -dir . --home ../../template
 
