@@ -165,13 +165,22 @@ type groupSearchListResponse {
 
 type groupValidRequest {
 	UserID  uint `header:"User-ID"`
-	GroupID uint `json:"groupID"`
+	GroupID uint `form:"groupID"`
 }
 
 type groupValidResponse {
 	Verification         int8                 `json:"verification"` // 好友验证
 	VerificationQuestion VerificationQuestion `json:"verificationQuestion"` // 问题和答案, 答案不返回
 }
+
+type AddGroupRequest {
+	UserID               uint                  `header:"User-ID"`
+	GroupID              uint                  `json:"groupID"`
+	Verify               string                `json:"verify,optional"` // 验证消息
+	VerificationQuestion *VerificationQuestion `json:"verificationQuestion,optional"` // 问题和答案
+}
+
+type AddGroupResponse {}
 
 service group {
 	@handler groupCreate
@@ -208,6 +217,9 @@ service group {
 	get /api/group/search (groupSearchRequest) returns (groupSearchListResponse) // 群搜索
 
 	@handler groupValid
-	post /api/group/valid (groupValidRequest) returns (groupValidResponse) // 群验证
+	get /api/group/valid (groupValidRequest) returns (groupValidResponse) // 群验证
+
+	@handler groupValidAdd
+	post /api/group/valid (AddGroupRequest) returns (AddGroupResponse) // 用户加群
 } //goctl api go -api group_api.api -dir . --home ../../template
 
