@@ -165,7 +165,7 @@ type groupSearchListResponse {
 
 type groupValidRequest {
 	UserID  uint `header:"User-ID"`
-	GroupID uint `form:"groupID"`
+	GroupID uint `path:"id"`
 }
 
 type groupValidResponse {
@@ -181,6 +181,31 @@ type AddGroupRequest {
 }
 
 type AddGroupResponse {}
+
+type groupValidListRequest {
+	UserID uint `header:"User-ID"`
+	Page   int  `form:"page,optional"`
+	Limit  int  `form:"limit,optional"`
+}
+
+type GroupValidInfoResponse {
+	ID                   uint                  `json:"id"`
+	GroupID              uint                  `json:"groupId"`
+	UserID               uint                  `json:"userId"`
+	UserNickname         string                `json:"userNickname"`
+	UserAvatar           string                `json:"userAvatar"`
+	status               int8                  `json:"status"`
+	AdditionalMessages   string                `json:"additionalMessages"`
+	VerificationQuestion *VerificationQuestion `json:"verificationQuestion"`
+	Title                string                `json:"title"`
+	Type                 int8                  `json:"type"` //1 加群 2退群
+	CreatedAt            string                `json:"createdAt"`
+}
+
+type groupValidListResponse {
+	List  []GroupValidInfoResponse `json:"list"`
+	Count int                      `json:"count"`
+}
 
 service group {
 	@handler groupCreate
@@ -217,9 +242,12 @@ service group {
 	get /api/group/search (groupSearchRequest) returns (groupSearchListResponse) // 群搜索
 
 	@handler groupValid
-	get /api/group/valid (groupValidRequest) returns (groupValidResponse) // 群验证
+	get /api/group/valid/:id (groupValidRequest) returns (groupValidResponse) // 群验证
 
 	@handler groupValidAdd
 	post /api/group/valid (AddGroupRequest) returns (AddGroupResponse) // 用户加群
+
+	@handler groupValidList
+	get /api/group/valid (groupValidListRequest) returns (groupValidListResponse) // 用户加群
 } //goctl api go -api group_api.api -dir . --home ../../template
 

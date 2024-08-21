@@ -39,6 +39,20 @@ type GroupSearchResponse struct {
 	UserOnlineCount int    `json:"userOnlineCount"` // 群在线用户总数
 }
 
+type GroupValidInfoResponse struct {
+	ID                   uint                  `json:"id"`
+	GroupID              uint                  `json:"groupId"`
+	UserID               uint                  `json:"userId"`
+	UserNickname         string                `json:"userNickname"`
+	UserAvatar           string                `json:"userAvatar"`
+	Status               int8                  `json:"status"`
+	AdditionalMessages   string                `json:"additionalMessages"`
+	VerificationQuestion *VerificationQuestion `json:"verificationQuestion"`
+	Title                string                `json:"title"`
+	CreatedAt            string                `json:"createdAt"`
+	Type                 int8                  `json:"type"` //1 加群 2退群
+}
+
 type UserInfo struct {
 	UserID   uint   `header:"User-ID"`
 	Avatar   string `json:"avatar"`
@@ -181,9 +195,20 @@ type GroupUpdateRequest struct {
 type GroupUpdateResponse struct {
 }
 
+type GroupValidListRequest struct {
+	UserID uint `header:"User-ID"`
+	Page   int  `form:"page,optional"`
+	Limit  int  `form:"limit,optional"`
+}
+
+type GroupValidListResponse struct {
+	List  []GroupValidInfoResponse `json:"list"`
+	Count int                      `json:"count"`
+}
+
 type GroupValidRequest struct {
 	UserID  uint `header:"User-ID"`
-	GroupID uint `form:"groupID"`
+	GroupID uint `path:"id"`
 }
 
 type GroupValidResponse struct {
