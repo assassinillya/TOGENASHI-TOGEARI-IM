@@ -24,9 +24,9 @@ func NewUserOnlineListLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Us
 	}
 }
 
-func (l *UserOnlineListLogic) UserOnlineList(in *user_rpc.UserOnlineRequest) (resp *user_rpc.UserOnlineResponse, err error) {
+func (l *UserOnlineListLogic) UserOnlineList(in *user_rpc.UserOnlineListRequest) (resp *user_rpc.UserOnlineListResponse, err error) {
 
-	resp = new(user_rpc.UserOnlineResponse)
+	resp = new(user_rpc.UserOnlineListResponse)
 	// 查哪些用户在线
 	onlineMap := l.svcCtx.RedisConf.HGetAll("online").Val()
 	for key, _ := range onlineMap {
