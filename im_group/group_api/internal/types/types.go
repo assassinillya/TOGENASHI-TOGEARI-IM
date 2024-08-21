@@ -90,6 +90,16 @@ type GroupFriendsListResponse struct {
 	List  []GroupFriendsResponse `json:"list"`
 }
 
+type GroupHistoryRequest struct {
+	UserID uint `header:"User-ID"`
+	ID     uint `path:"id"`
+	Page   int  `form:"page,optional"`
+	Limit  int  `form:"limit,optional"`
+}
+
+type GroupHistoryResponse struct {
+}
+
 type GroupInfoRequest struct {
 	UserID uint `header:"User-ID"`
 	ID     uint `path:"id"` //群id

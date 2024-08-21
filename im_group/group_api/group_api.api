@@ -226,6 +226,15 @@ type groupProhibitionRequest {
 
 type groupProhibitionResponse {}
 
+type groupHistoryRequest {
+	UserID uint `header:"User-ID"`
+	ID     uint `path:"id"`
+	Page   int  `form:"page,optional"`
+	Limit  int  `form:"limit,optional"`
+}
+
+type groupHistoryResponse {}
+
 service group {
 	@handler groupCreate
 	post /api/group/group (groupCreateRequest) returns (groupCreateResponse) // 创建群聊
@@ -274,5 +283,8 @@ service group {
 
 	@handler groupProhibitionUpdate
 	put /api/group/member/prohibition (groupProhibitionRequest) returns (groupProhibitionResponse) // 群验证操作
+
+	@handler groupHistory
+	get /api/group/history/:id (groupHistoryRequest) returns (groupHistoryResponse) // 群验证操作
 } //goctl api go -api group_api.api -dir . --home ../../template
 

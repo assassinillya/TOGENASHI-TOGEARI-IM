@@ -58,7 +58,7 @@ type chatResponse {}
 
 service chat {
 	@handler chatHistory
-	get /api/chat/history (ChatHistoryRequest) returns (ChatHistoryResponse) // 聊天记录
+	get /api/chat/history (ChatHistoryRequest) returns (ChatHistoryResponse) // 聊天记录 没有使用ChatHistoryResponse
 
 	@handler chatSession
 	get /api/chat/session (ChatSessionRequest) returns (ChatSessionResponse) // 最近会话列表
