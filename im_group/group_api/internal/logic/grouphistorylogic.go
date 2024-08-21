@@ -54,12 +54,18 @@ func (l *GroupHistoryLogic) GroupHistory(req *types.GroupHistoryRequest) (resp *
 	if err != nil {
 		return nil, errors.New("并非群成员")
 	}
+	// 去查我删除了哪些聊天记录
+	var msgIDList []uint
+	l.svcCtx.DB.Model(group_models.GroupUserMsgDeleteModel{}).
+		Where("group_id = ? and user_id = ?", req.ID, req.UserID).
+		Select("msg_id").Scan(&msgIDList)
 
 	groupMsgList, count, err := list_query.ListQuery(l.svcCtx.DB, group_models.GroupMsgModel{GroupID: req.ID}, list_query.Option{
 		PageInfo: models.PageInfo{
 			Page:  req.Page,
 			Limit: req.Limit,
 		},
+		Where: l.svcCtx.DB.Where("id not in ?", msgIDList),
 	})
 
 	var userIDList []uint32
