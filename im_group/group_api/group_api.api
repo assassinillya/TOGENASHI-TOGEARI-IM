@@ -207,6 +207,14 @@ type groupValidListResponse {
 	Count int                      `json:"count"`
 }
 
+type groupValidStatusRequest {
+	UserID  uint `header:"User-ID"`
+	ValidID uint `json:"validId"`
+	Status  int8 `json:"status"`
+}
+
+type groupValidStatusResponse {}
+
 service group {
 	@handler groupCreate
 	post /api/group/group (groupCreateRequest) returns (groupCreateResponse) // 创建群聊
@@ -248,6 +256,9 @@ service group {
 	post /api/group/valid (AddGroupRequest) returns (AddGroupResponse) // 用户加群
 
 	@handler groupValidList
-	get /api/group/valid (groupValidListRequest) returns (groupValidListResponse) // 用户加群
+	get /api/group/valid (groupValidListRequest) returns (groupValidListResponse) // 群验证列表
+
+	@handler groupValidStatus
+	put /api/group/valid/status (groupValidStatusRequest) returns (groupValidStatusResponse) // 群验证操作
 } //goctl api go -api group_api.api -dir . --home ../../template
 

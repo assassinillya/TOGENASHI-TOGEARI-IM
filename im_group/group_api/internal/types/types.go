@@ -49,8 +49,8 @@ type GroupValidInfoResponse struct {
 	AdditionalMessages   string                `json:"additionalMessages"`
 	VerificationQuestion *VerificationQuestion `json:"verificationQuestion"`
 	Title                string                `json:"title"`
-	CreatedAt            string                `json:"createdAt"`
 	Type                 int8                  `json:"type"` //1 加群 2退群
+	CreatedAt            string                `json:"createdAt"`
 }
 
 type UserInfo struct {
@@ -214,4 +214,13 @@ type GroupValidRequest struct {
 type GroupValidResponse struct {
 	Verification         int8                 `json:"verification"`         // 好友验证
 	VerificationQuestion VerificationQuestion `json:"verificationQuestion"` // 问题和答案, 答案不返回
+}
+
+type GroupValidStatusRequest struct {
+	UserID  uint `header:"User-ID"`
+	ValidID uint `json:"validId"`
+	Status  int8 `json:"status"`
+}
+
+type GroupValidStatusResponse struct {
 }
