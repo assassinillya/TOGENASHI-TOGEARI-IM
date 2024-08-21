@@ -90,6 +90,17 @@ type GroupFriendsListResponse struct {
 	List  []GroupFriendsResponse `json:"list"`
 }
 
+type GroupHistoryDeleteRequest struct {
+	UserID    uint   `header:"User-ID"`
+	ID        uint   `path:"id"`
+	Page      int    `form:"page,optional"`
+	Limit     int    `form:"limit,optional"`
+	MsgIDList []uint `json:"msgIdList"`
+}
+
+type GroupHistoryDeleteResponse struct {
+}
+
 type GroupHistoryRequest struct {
 	UserID uint `header:"User-ID"`
 	ID     uint `path:"id"`
