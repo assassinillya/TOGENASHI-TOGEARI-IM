@@ -105,6 +105,8 @@ type GroupInfoResponse struct {
 	MemberOnlineCount int        `json:"memberOnlineCount"` //在线用户数量
 	AdminList         []UserInfo `json:"adminList"`         //管理员列表
 	Role              int8       `json:"role"`              // 群角色 1 群主 2 管理员 3 群成员
+	IsProhibition     bool       `json:"isProhibition"`     // 是否开启全员禁言
+	ProhibitionTime   *int       `json:"prohibitionTime"`   // 禁言时间 单位分钟
 }
 
 type GroupMemberAddRequest struct {
@@ -156,6 +158,16 @@ type GroupMemberRoleUpdateRequest struct {
 }
 
 type GroupMemberRoleUpdateResponse struct {
+}
+
+type GroupProhibitionRequest struct {
+	UserID          uint `header:"User-ID"`
+	GroupID         uint `json:"groupId"`
+	MemberID        uint `json:"memberId"`
+	ProhibitionTime *int `json:"prohibitionTime,optional"` // 禁言时间, 单位分钟
+}
+
+type GroupProhibitionResponse struct {
 }
 
 type GroupRemoveRequest struct {

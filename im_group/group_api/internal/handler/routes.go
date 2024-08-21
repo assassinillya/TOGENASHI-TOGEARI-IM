@@ -59,6 +59,11 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 			},
 			{
 				Method:  http.MethodPut,
+				Path:    "/api/group/member/prohibition",
+				Handler: groupProhibitionUpdateHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPut,
 				Path:    "/api/group/member/role",
 				Handler: groupMemberRoleUpdateHandler(serverCtx),
 			},

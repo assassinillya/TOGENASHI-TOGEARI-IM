@@ -46,12 +46,14 @@ func (l *GroupInfoLogic) GroupInfo(req *types.GroupInfoRequest) (resp *types.Gro
 	// 算在线用户总数
 
 	resp = &types.GroupInfoResponse{
-		GroupID:     groupModel.ID,
-		Title:       groupModel.Title,
-		Abstract:    groupModel.Abstract,
-		MemberCount: len(groupModel.MemberList),
-		Avatar:      groupModel.Avatar,
-		Role:        member.Role,
+		GroupID:         groupModel.ID,
+		Title:           groupModel.Title,
+		Abstract:        groupModel.Abstract,
+		MemberCount:     len(groupModel.MemberList),
+		Avatar:          groupModel.Avatar,
+		Role:            member.Role,
+		IsProhibition:   groupModel.IsProhibition,
+		ProhibitionTime: member.ProhibitionTime,
 	}
 
 	// 查用户列表信息
