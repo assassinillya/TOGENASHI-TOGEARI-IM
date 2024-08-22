@@ -273,6 +273,27 @@ type groupTopRequest {
 
 type groupTopResponse {}
 
+type groupMyRequest {
+	UserID uint `header:"User-ID"`
+	Mode   int8 `form:"mode":"mode"` // 1 我创建的群聊 2 我加入的群聊
+	Page   int  `form:"page,optional"`
+	Limit  int  `form:"limit,optional"`
+}
+
+type GroupMyResponse {
+	GroupID          uint   `json:"groupId"`
+	GroupTitle       string `json:"groupTitle"`
+	GroupAvatar      string `json:"groupAvatar"`
+	GroupMemberCount int    `json:"groupMemberCount"`
+	Role             int8   `json:"role"` // 角色
+	Mode             int8   `json:"mode"` // 1 我创建的群聊 2 我加入的群聊
+}
+
+type groupMyListResponse {
+	List  []GroupMyResponse `json:"list"`
+	Count int               `json:"count"`
+}
+
 service group {
 	@handler groupCreate
 	post /api/group/group (groupCreateRequest) returns (groupCreateResponse) // 创建群聊
@@ -332,6 +353,9 @@ service group {
 	get /api/group/session (groupSessionRequest) returns (groupSessionListResponse) // 群会话列表
 
 	@handler groupTop
-	put /api/group/top (groupTopRequest) returns (groupTopResponse) // 群会话列表
+	put /api/group/top (groupTopRequest) returns (groupTopResponse) // 群置顶
+
+	@handler groupMy
+	get /api/group/my (groupMyRequest) returns (groupMyListResponse) // 群聊分类信息
 } //goctl api go -api group_api.api -dir . --home ../../template
 
