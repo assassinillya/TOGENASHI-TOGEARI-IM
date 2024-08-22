@@ -117,6 +117,11 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Path:    "/api/group/valid/status",
 				Handler: groupValidStatusHandler(serverCtx),
 			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/api/group/ws/chat",
+				Handler: groupChatHandler(serverCtx),
+			},
 		},
 	)
 }

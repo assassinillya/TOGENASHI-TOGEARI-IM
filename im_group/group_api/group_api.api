@@ -294,6 +294,12 @@ type groupMyListResponse {
 	Count int               `json:"count"`
 }
 
+type groupChatRequest {
+	UserID uint `header:"User-ID"`
+}
+
+type groupChatResponse {}
+
 service group {
 	@handler groupCreate
 	post /api/group/group (groupCreateRequest) returns (groupCreateResponse) // 创建群聊
@@ -357,5 +363,8 @@ service group {
 
 	@handler groupMy
 	get /api/group/my (groupMyRequest) returns (groupMyListResponse) // 群聊分类信息
+
+	@handler groupChat
+	get /api/group/ws/chat (groupChatRequest) returns (groupChatResponse) // 群聊对话
 } //goctl api go -api group_api.api -dir . --home ../../template
 

@@ -86,6 +86,13 @@ type VerificationQuestion struct {
 	Answer3  *string `json:"answer3,optional" conf:"answer3"`
 }
 
+type GroupChatRequest struct {
+	UserID uint `header:"User-ID"`
+}
+
+type GroupChatResponse struct {
+}
+
 type GroupCreateRequest struct {
 	UserID     uint   `header:"User-ID"`
 	Mode       int8   `json:"mode,optional"` // 模式 1 直接创建模式 2 选人创建模式
