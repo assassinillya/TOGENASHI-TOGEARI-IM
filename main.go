@@ -36,6 +36,7 @@ func main() {
 			&group_models.GroupMsgModel{},           // 群消息表
 			&group_models.GroupVerifyModel{},        // 群验证表
 			&group_models.GroupUserMsgDeleteModel{}, // 用户删除聊天记录表
+			&group_models.GroupUserTopModel{},       // 用户置顶群聊表
 			&file_model.FileModel{},                 // 文件表
 		)
 

@@ -257,12 +257,21 @@ type GroupSessionResponse {
 	Avatar        string `json:"avatar"`
 	NewMsgDate    string `json:"newMsgDate"` //最新的消息时间
 	NewMsgPreview string `json:"newMsgPreview"` //最新的消息内容
+	IsTop         bool   `json:"isTop"`
 }
 
 type groupSessionListResponse {
 	List  []GroupSessionResponse `json:"list"`
 	Count int                    `json:"count"`
 }
+
+type groupTopRequest {
+	UserID  uint `header:"User-ID"`
+	GroupID uint `json:"groupId"`
+	IsTop   bool `json:"isTop"`
+}
+
+type groupTopResponse {}
 
 service group {
 	@handler groupCreate
@@ -311,15 +320,18 @@ service group {
 	put /api/group/valid/status (groupValidStatusRequest) returns (groupValidStatusResponse) // 群验证操作
 
 	@handler groupProhibitionUpdate
-	put /api/group/member/prohibition (groupProhibitionRequest) returns (groupProhibitionResponse) // 群验证操作
+	put /api/group/member/prohibition (groupProhibitionRequest) returns (groupProhibitionResponse) // 群禁言用户
 
 	@handler groupHistory
-	get /api/group/history/:id (groupHistoryRequest) returns (groupHistoryResponse) // 群验证操作
+	get /api/group/history/:id (groupHistoryRequest) returns (groupHistoryResponse) // 聊天记录 不使用groupHistoryResponse
 
 	@handler groupHistoryDelete
-	delete /api/group/history/:id (groupHistoryDeleteRequest) returns (groupHistoryDeleteResponse) // 群验证操作
+	delete /api/group/history/:id (groupHistoryDeleteRequest) returns (groupHistoryDeleteResponse) // 删除群聊聊天记录
 
 	@handler groupSession
 	get /api/group/session (groupSessionRequest) returns (groupSessionListResponse) // 群会话列表
+
+	@handler groupTop
+	put /api/group/top (groupTopRequest) returns (groupTopResponse) // 群会话列表
 } //goctl api go -api group_api.api -dir . --home ../../template
 

@@ -45,6 +45,7 @@ type GroupSessionResponse struct {
 	Avatar        string `json:"avatar"`
 	NewMsgDate    string `json:"newMsgDate"`    //最新的消息时间
 	NewMsgPreview string `json:"newMsgPreview"` //最新的消息内容
+	IsTop         bool   `json:"isTop"`
 }
 
 type GroupValidInfoResponse struct {
@@ -228,6 +229,15 @@ type GroupSessionRequest struct {
 	UserID uint `header:"User-ID"`
 	Page   int  `form:"page,optional"`
 	Limit  int  `form:"limit,optional"`
+}
+
+type GroupTopRequest struct {
+	UserID  uint `header:"User-ID"`
+	GroupID uint `json:"groupId"`
+	IsTop   bool `json:"isTop"`
+}
+
+type GroupTopResponse struct {
 }
 
 type GroupUpdateRequest struct {

@@ -88,6 +88,11 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Handler: groupSessionHandler(serverCtx),
 			},
 			{
+				Method:  http.MethodPut,
+				Path:    "/api/group/top",
+				Handler: groupTopHandler(serverCtx),
+			},
+			{
 				Method:  http.MethodPost,
 				Path:    "/api/group/valid",
 				Handler: groupValidAddHandler(serverCtx),
