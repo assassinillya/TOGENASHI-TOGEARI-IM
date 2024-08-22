@@ -40,6 +40,7 @@ type HistoryResponse struct {
 	ID           uint      `json:"id"`
 	MsgType      int8      `json:"msgType"`
 	CreatedAt    time.Time `json:"createdAt"`
+	IsMe         bool      `json:"isMe"`
 }
 
 type HistoryListResponse struct {
@@ -90,6 +91,9 @@ func (l *GroupHistoryLogic) GroupHistory(req *types.GroupHistoryRequest) (resp *
 		if err1 == nil {
 			info.UserNickname = userListResponse.UserInfo[uint32(info.UserID)].NickName
 			info.UserAvatar = userListResponse.UserInfo[uint32(info.UserID)].Avatar
+		}
+		if req.UserID == info.UserID {
+			info.IsMe = true
 		}
 		list = append(list, info)
 	}

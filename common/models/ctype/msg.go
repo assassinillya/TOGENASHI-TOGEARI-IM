@@ -39,6 +39,34 @@ type Msg struct {
 	TipMsg       *TipMsg       `json:"tipMsg,omitempty"`       //提示消息，一般是不入库的
 }
 
+func (msg Msg) MsgPreview() string {
+	switch msg.Type {
+	case 1:
+		return msg.TextMsg.Content
+	case 2:
+		return "[图片消息] - " + msg.ImageMsg.Title
+	case 3:
+		return "[视频消息] - " + msg.VideoMsg.Title
+	case 4:
+		return "[文件消息] - " + msg.FileMsg.Title
+	case 5:
+		return "[语音消息] - "
+	case 6:
+		return "[语音通话] - "
+	case 7:
+		return "[视频通话] - "
+	case 8:
+		return "[撤回消息] - " + msg.WithdrawMsg.Content
+	case 9:
+		return "[回复消息] - " + msg.ReplyMsg.Content
+	case 10:
+		return "[引用消息] - " + msg.QuoteMsg.Content
+	case 11:
+		return "[@消息] - " + msg.AtMsg.Content
+	}
+	return "[未知消息]"
+}
+
 // Scan 入库的数据
 func (c *Msg) Scan(val interface{}) error {
 	err := json.Unmarshal(val.([]byte), c)
