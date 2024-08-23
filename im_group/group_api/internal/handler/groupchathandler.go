@@ -138,6 +138,90 @@ func groupChatHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 				SendTipErrMsg(conn, "你还不是该群的成员")
 				continue
 			}
+			switch request.Msg.Type {
+			case ctype.WithdrawMsgType: // 撤回消息
+				// 校验
+				withdrawMsg := request.Msg.WithdrawMsg
+				if withdrawMsg == nil {
+					SendTipErrMsg(conn, "撤回消息为空")
+					continue
+				}
+				if withdrawMsg.MsgID == 0 {
+					SendTipErrMsg(conn, "撤回消息id为空")
+					continue
+				}
+				// 去找原消息
+				var groupMsg group_models.GroupMsgModel
+				err = svcCtx.DB.Take(&groupMsg, "group_id = ? and id = ?", request.GroupID, withdrawMsg.MsgID).Error
+				if err != nil {
+					SendTipErrMsg(conn, "原消息不存在")
+					continue
+				}
+				// 原消息不能是撤回消息
+				if groupMsg.MsgType == ctype.WithdrawMsgType {
+					SendTipErrMsg(conn, "该消息已撤回")
+					continue
+				}
+				// 要去拿我在这个群的角色
+
+				// 自己是普通用户
+				if member.Role == 3 {
+					// 如果是自己撤自己的
+					if req.UserID != groupMsg.SendUserID {
+						SendTipErrMsg(conn, "普通用户只能撤回自己的消息")
+						continue
+					}
+					// 要判断时间是不是大于了2分钟
+					now := time.Now()
+					if now.Sub(groupMsg.CreatedAt) > 2*time.Minute {
+						SendTipErrMsg(conn, "只能撤回两分钟以内的消息")
+						continue
+					}
+				}
+
+				// 查这个消息的用户，在这个群里的角色
+				var msgUserRole int8 = 3
+				svcCtx.DB.Model(group_models.GroupMemberModel{}).
+					Where("group_id = ? and user_id = ?", request.GroupID, groupMsg.SendUserID).
+					Select("role").
+					Scan(&msgUserRole)
+				// 这里有可能查不到  原因是这个消息的用户退群了，那么也是可以撤回的
+
+				// 如果是管理员撤回  它能撤自己和用户的，没有时间限制
+				if member.Role == 2 {
+					// 不能撤群主和别的管理员
+					if msgUserRole == 1 || (msgUserRole == 2 && groupMsg.SendUserID != req.UserID) {
+						SendTipErrMsg(conn, "管理员只能撤回自己或者普通用户的消息")
+						continue
+					}
+				}
+				// 如果是群主，什么消息都可以撤回
+
+				// 代表消息可以撤回了
+				// 修改原消息
+
+				var content = "撤回了一条消息"
+				content = userInfo.NickName + content
+
+				// 前端可以判断，这个消息如果不是isMe，就可以把你替换成对方的昵称
+
+				originMsg := groupMsg.Msg
+				originMsg.WithdrawMsg = nil // 这里可能会出现循环引用，所以拷贝了这个值，并且把撤回消息置空了
+
+				svcCtx.DB.Model(&groupMsg).Updates(group_models.GroupMsgModel{
+					MsgPreview: "[撤回消息] - " + content,
+					MsgType:    ctype.WithdrawMsgType,
+					Msg: ctype.Msg{
+						Type: ctype.WithdrawMsgType,
+						WithdrawMsg: &ctype.WithdrawMsg{
+							Content:   content,
+							MsgID:     request.Msg.WithdrawMsg.MsgID,
+							OriginMsg: &originMsg,
+						},
+					},
+				})
+
+			}
 
 			msgID := InsertMsg(svcCtx.DB, conn, member, request.Msg)
 
@@ -149,24 +233,6 @@ func groupChatHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 				request.Msg,
 				msgID,
 			)
-
-			// 查在线的用户列表
-			userOnlineIDList := getOnlineUserIDList()
-			// 查这个群的成员 并且在线
-			var groupMemberOnlineIDList []uint
-			svcCtx.DB.Model(group_models.GroupMemberModel{}).
-				Where("group_id = ? and user_id in ?", request.GroupID, userOnlineIDList).
-				Select("user_id").Scan(&groupMemberOnlineIDList)
-
-			for _, u := range groupMemberOnlineIDList {
-				wsUserInfo, ok2 := UserOnlineWsMap[u]
-				if !ok2 {
-					continue
-				}
-				for _, w2 := range wsUserInfo.WsClientMap {
-					w2.WriteMessage(websocket.TextMessage, []byte(""))
-				}
-			}
 
 			fmt.Println(string(p))
 		}
@@ -185,7 +251,7 @@ func InsertMsg(DB *gorm.DB, conn *websocket.Conn, member group_models.GroupMembe
 		MsgType:    msg.Type,
 		Msg:        msg,
 	}
-	groupModel.MsgPreView = groupModel.MsgPreviewMethod()
+	groupModel.MsgPreview = groupModel.MsgPreviewMethod()
 	err := DB.Create(&groupModel).Error
 	if err != nil {
 		logx.Error(err)
@@ -221,6 +287,8 @@ func SendTipErrMsg(Conn *websocket.Conn, msg string) {
 // 给这个群的用户发消息
 func sendGroupOnlineUserMsg(db *gorm.DB, groupID uint, userID uint, msg ctype.Msg, msgID uint) {
 
+	// todo 应该吧撤回信息的content展示
+
 	// 查在线的用户列表
 	userOnlineIDList := getOnlineUserIDList()
 	// 查这个群的成员 并且在线
@@ -248,6 +316,7 @@ func sendGroupOnlineUserMsg(db *gorm.DB, groupID uint, userID uint, msg ctype.Ms
 		if !ok2 {
 			continue
 		}
+		chatResponse.IsMe = false
 		// 判断isMe
 		if wsUserInfo.UserInfo.ID == userID {
 			chatResponse.IsMe = true

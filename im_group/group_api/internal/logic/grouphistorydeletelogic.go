@@ -48,7 +48,7 @@ func (l *GroupHistoryDeleteLogic) GroupHistoryDelete(req *types.GroupHistoryDele
 	// 用户传过来的消息id，消息不一定存在
 	var msgIDFindList []uint
 	l.svcCtx.DB.Model(group_models.GroupMsgModel{}).
-		Where("id in ?", addMsgIDList).
+		Where("id in ? and group_id = ?", addMsgIDList, req.ID).
 		Select("id").Scan(&msgIDFindList)
 
 	if len(msgIDFindList) != len(addMsgIDList) {

@@ -3,6 +3,7 @@ package logic
 import (
 	"context"
 	"errors"
+	"fmt"
 	"im_server/common/list_query"
 	"im_server/common/models"
 	"im_server/common/models/ctype"
@@ -57,16 +58,24 @@ func (l *GroupHistoryLogic) GroupHistory(req *types.GroupHistoryRequest) (resp *
 	}
 	// 去查我删除了哪些聊天记录
 	var msgIDList []uint
-	l.svcCtx.DB.Model(group_models.GroupUserMsgDeleteModel{}).
+	err5 := l.svcCtx.DB.Model(group_models.GroupUserMsgDeleteModel{}).
 		Where("group_id = ? and user_id = ?", req.ID, req.UserID).
-		Select("msg_id").Scan(&msgIDList)
+		Select("msg_id").Scan(&msgIDList).Error
+	fmt.Println(err5)
+
+	var query = l.svcCtx.DB.Where("")
+	// 不加上这个会导致在msgIDList为空的情况下什么也搜不到
+	if len(msgIDList) > 0 {
+		query.Where("id not in ?", msgIDList)
+	}
 
 	groupMsgList, count, err := list_query.ListQuery(l.svcCtx.DB, group_models.GroupMsgModel{GroupID: req.ID}, list_query.Option{
 		PageInfo: models.PageInfo{
 			Page:  req.Page,
 			Limit: req.Limit,
+			Sort:  "created_at desc",
 		},
-		Where: l.svcCtx.DB.Where("id not in ?", msgIDList),
+		Where: l.svcCtx.DB.Where("id not in ? and group_id = ?", msgIDList, req.ID),
 	})
 
 	var userIDList []uint32
