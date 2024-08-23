@@ -34,14 +34,15 @@ func NewGroupHistoryLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Grou
 
 // HistoryResponse 单条信息
 type HistoryResponse struct {
-	UserID       uint      `json:"userID"`
-	UserNickname string    `json:"userNickname"`
-	UserAvatar   string    `json:"userAvatar"`
-	Msg          ctype.Msg `json:"msg"`
-	ID           uint      `json:"id"`
-	MsgType      int8      `json:"msgType"`
-	CreatedAt    time.Time `json:"createdAt"`
-	IsMe         bool      `json:"isMe"`
+	UserID         uint      `json:"userID"`
+	UserNickname   string    `json:"userNickname"`
+	UserAvatar     string    `json:"userAvatar"`
+	Msg            ctype.Msg `json:"msg"`
+	ID             uint      `json:"id"`
+	MsgType        int8      `json:"msgType"`
+	CreatedAt      time.Time `json:"createdAt"`
+	IsMe           bool      `json:"isMe"`
+	MemberNickname string    `json:"memberNickname"` // 群中好友显示好友备注
 }
 
 type HistoryListResponse struct {
@@ -78,6 +79,14 @@ func (l *GroupHistoryLogic) GroupHistory(req *types.GroupHistoryRequest) (resp *
 		Where: l.svcCtx.DB.Where("id not in ? and group_id = ?", msgIDList, req.ID),
 	})
 
+	// 查一下所有的群成员
+	var memberList []group_models.GroupMemberModel
+	l.svcCtx.DB.Find(&memberList, "group_id = ?", req.ID)
+	memberMap := map[uint]group_models.GroupMemberModel{}
+	for _, model := range memberList {
+		memberMap[model.UserID] = model
+	}
+
 	var userIDList []uint32
 	for _, model := range groupMsgList {
 		userIDList = append(userIDList, uint32(model.SendUserID))
@@ -90,11 +99,12 @@ func (l *GroupHistoryLogic) GroupHistory(req *types.GroupHistoryRequest) (resp *
 	var list = make([]HistoryResponse, 0)
 	for _, model := range groupMsgList {
 		info := HistoryResponse{
-			UserID:    model.SendUserID,
-			Msg:       model.Msg,
-			ID:        model.ID,
-			MsgType:   model.MsgType,
-			CreatedAt: model.CreatedAt,
+			UserID:         model.SendUserID,
+			Msg:            model.Msg,
+			ID:             model.ID,
+			MsgType:        model.MsgType,
+			CreatedAt:      model.CreatedAt,
+			MemberNickname: memberMap[model.SendUserID].MemberNickname,
 		}
 		// 拿不到名称和头像也无所谓
 		if err1 == nil {
