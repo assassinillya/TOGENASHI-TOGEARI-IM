@@ -9,6 +9,7 @@ import (
 	"gorm.io/gorm"
 	"im_server/common/models/ctype"
 	"im_server/common/response"
+	"im_server/common/service/redis_service"
 	"im_server/im_group/group_api/internal/svc"
 	"im_server/im_group/group_api/internal/types"
 	"im_server/im_group/group_models"
@@ -221,6 +222,65 @@ func groupChatHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 						},
 					},
 				})
+
+			case ctype.ReplyMsgType:
+				//回复消息
+				//先校验
+				if request.Msg.ReplyMsg == nil || request.Msg.ReplyMsg.MsgID == 0 {
+					SendTipErrMsg(conn, "回复消息必填")
+					continue
+				}
+				//找这个原消息
+				var msgModel group_models.GroupMsgModel
+				err = svcCtx.DB.Take(&msgModel, "group_id = ? and id = ?", request.GroupID, request.Msg.ReplyMsg.MsgID).Error
+				if err != nil {
+					SendTipErrMsg(conn, "消息不	存在")
+					continue
+				}
+				//不能回复撤回消息
+				if msgModel.MsgType == ctype.WithdrawMsgType {
+					SendTipErrMsg(conn, "该消息已撤回")
+					continue
+				}
+
+				SendBaseInfo, err2 := redis_service.GetUserBaseInfo(svcCtx.Redis, svcCtx.UserRpc, msgModel.SendUserID)
+				if err2 != nil {
+					logx.Error(err2)
+					return
+				}
+				request.Msg.ReplyMsg.Msg = &msgModel.Msg
+				request.Msg.ReplyMsg.UserID = msgModel.SendUserID
+				request.Msg.ReplyMsg.UserNickName = SendBaseInfo.NickName
+				request.Msg.ReplyMsg.OriginMsgDate = msgModel.CreatedAt
+			case ctype.QuoteMsgType:
+				//引用消息
+				//先校验
+				if request.Msg.QuoteMsg == nil || request.Msg.QuoteMsg.MsgID == 0 {
+					SendTipErrMsg(conn, "引用消息必填")
+					continue
+				}
+				//找这个原消息
+				var msgModel group_models.GroupMsgModel
+				err = svcCtx.DB.Take(&msgModel, "group_id = ? and id = ?", request.GroupID, request.Msg.QuoteMsg.MsgID).Error
+				if err != nil {
+					SendTipErrMsg(conn, "消息不存在")
+					continue
+				}
+				//不能引用撤回消息
+				if msgModel.MsgType == ctype.WithdrawMsgType {
+					SendTipErrMsg(conn, "该消息已撤回")
+					continue
+				}
+
+				SendBaseInfo, err2 := redis_service.GetUserBaseInfo(svcCtx.Redis, svcCtx.UserRpc, msgModel.SendUserID)
+				if err2 != nil {
+					logx.Error(err2)
+					return
+				}
+				request.Msg.QuoteMsg.Msg = &msgModel.Msg
+				request.Msg.QuoteMsg.UserID = msgModel.SendUserID
+				request.Msg.QuoteMsg.UserNickName = SendBaseInfo.NickName
+				request.Msg.QuoteMsg.OriginMsgDate = msgModel.CreatedAt
 
 			}
 
