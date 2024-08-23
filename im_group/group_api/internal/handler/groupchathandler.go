@@ -32,14 +32,15 @@ type ChatRequest struct {
 }
 
 type ChatResponse struct {
-	UserID       uint          `json:"userID"`
-	UserNickname string        `json:"userNickname"`
-	UserAvatar   string        `json:"userAvatar"`
-	Msg          ctype.Msg     `json:"msg"`
-	ID           uint          `json:"id"`
-	MsgType      ctype.MsgType `json:"msgType"`
-	CreatedAt    time.Time     `json:"createdAt"`
-	IsMe         bool          `json:"isMe"`
+	UserID         uint          `json:"userID"`
+	UserNickname   string        `json:"userNickname"`
+	UserAvatar     string        `json:"userAvatar"`
+	Msg            ctype.Msg     `json:"msg"`
+	ID             uint          `json:"id"`
+	MsgType        ctype.MsgType `json:"msgType"`
+	CreatedAt      time.Time     `json:"createdAt"`
+	IsMe           bool          `json:"isMe"`
+	MemberNickname string        `json:"memberNickname"` // 群中好友显示好友备注
 }
 
 func groupChatHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
@@ -228,8 +229,7 @@ func groupChatHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			// 遍历这个用户列表，去找ws的客户端
 			sendGroupOnlineUserMsg(
 				svcCtx.DB,
-				request.GroupID,
-				req.UserID,
+				member,
 				request.Msg,
 				msgID,
 			)
@@ -246,10 +246,11 @@ func InsertMsg(DB *gorm.DB, conn *websocket.Conn, member group_models.GroupMembe
 		return 0
 	}
 	groupModel := group_models.GroupMsgModel{
-		GroupID:    member.GroupID,
-		SendUserID: member.UserID,
-		MsgType:    msg.Type,
-		Msg:        msg,
+		GroupID:       member.GroupID,
+		SendUserID:    member.UserID,
+		GroupMemberID: member.ID,
+		MsgType:       msg.Type,
+		Msg:           msg,
 	}
 	groupModel.MsgPreview = groupModel.MsgPreviewMethod()
 	err := DB.Create(&groupModel).Error
@@ -285,7 +286,7 @@ func SendTipErrMsg(Conn *websocket.Conn, msg string) {
 }
 
 // 给这个群的用户发消息
-func sendGroupOnlineUserMsg(db *gorm.DB, groupID uint, userID uint, msg ctype.Msg, msgID uint) {
+func sendGroupOnlineUserMsg(db *gorm.DB, member group_models.GroupMemberModel, msg ctype.Msg, msgID uint) {
 
 	// todo 应该吧撤回信息的content展示
 
@@ -294,18 +295,19 @@ func sendGroupOnlineUserMsg(db *gorm.DB, groupID uint, userID uint, msg ctype.Ms
 	// 查这个群的成员 并且在线
 	var groupMemberOnlineIDList []uint
 	db.Model(group_models.GroupMemberModel{}).
-		Where("group_id = ? and user_id in ?", groupID, userOnlineIDList).
+		Where("group_id = ? and user_id in ?", member.GroupID, userOnlineIDList).
 		Select("user_id").Scan(&groupMemberOnlineIDList)
 
 	// 构造响应
 	var chatResponse = ChatResponse{
-		UserID:    userID,
-		Msg:       msg,
-		ID:        msgID,
-		MsgType:   msg.Type,
-		CreatedAt: time.Now(),
+		UserID:         member.UserID,
+		Msg:            msg,
+		ID:             msgID,
+		MsgType:        msg.Type,
+		CreatedAt:      time.Now(),
+		MemberNickname: member.MemberNickname,
 	}
-	wsInfo, ok := UserOnlineWsMap[userID]
+	wsInfo, ok := UserOnlineWsMap[member.UserID]
 	if ok {
 		chatResponse.UserNickname = wsInfo.UserInfo.NickName
 		chatResponse.UserAvatar = wsInfo.UserInfo.Avatar
@@ -318,7 +320,7 @@ func sendGroupOnlineUserMsg(db *gorm.DB, groupID uint, userID uint, msg ctype.Ms
 		}
 		chatResponse.IsMe = false
 		// 判断isMe
-		if wsUserInfo.UserInfo.ID == userID {
+		if wsUserInfo.UserInfo.ID == member.UserID {
 			chatResponse.IsMe = true
 		}
 

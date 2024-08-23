@@ -76,16 +76,9 @@ func (l *GroupHistoryLogic) GroupHistory(req *types.GroupHistoryRequest) (resp *
 			Limit: req.Limit,
 			Sort:  "created_at desc",
 		},
-		Where: l.svcCtx.DB.Where("id not in ? and group_id = ?", msgIDList, req.ID),
+		Where:    query,
+		Preloads: []string{"GroupMemberModel"},
 	})
-
-	// 查一下所有的群成员
-	var memberList []group_models.GroupMemberModel
-	l.svcCtx.DB.Find(&memberList, "group_id = ?", req.ID)
-	memberMap := map[uint]group_models.GroupMemberModel{}
-	for _, model := range memberList {
-		memberMap[model.UserID] = model
-	}
 
 	var userIDList []uint32
 	for _, model := range groupMsgList {
@@ -99,13 +92,17 @@ func (l *GroupHistoryLogic) GroupHistory(req *types.GroupHistoryRequest) (resp *
 	var list = make([]HistoryResponse, 0)
 	for _, model := range groupMsgList {
 		info := HistoryResponse{
-			UserID:         model.SendUserID,
-			Msg:            model.Msg,
-			ID:             model.ID,
-			MsgType:        model.MsgType,
-			CreatedAt:      model.CreatedAt,
-			MemberNickname: memberMap[model.SendUserID].MemberNickname,
+			UserID:    model.SendUserID,
+			Msg:       model.Msg,
+			ID:        model.ID,
+			MsgType:   model.MsgType,
+			CreatedAt: model.CreatedAt,
 		}
+
+		if model.GroupMemberModel != nil {
+			info.MemberNickname = model.GroupMemberModel.MemberNickname
+		}
+
 		// 拿不到名称和头像也无所谓
 		if err1 == nil {
 			info.UserNickname = userListResponse.UserInfo[uint32(info.UserID)].NickName
