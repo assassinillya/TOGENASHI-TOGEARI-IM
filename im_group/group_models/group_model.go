@@ -1,8 +1,12 @@
 package group_models
 
 import (
+	"fmt"
+	"github.com/go-redis/redis"
+	"gorm.io/gorm"
 	"im_server/common/models"
 	"im_server/common/models/ctype"
+	"time"
 )
 
 // GroupModel 群组
@@ -35,4 +39,24 @@ func (uc GroupModel) GetQuestionCount() (count int) {
 		}
 	}
 	return count
+}
+
+func (gm GroupMemberModel) GetProhibitionTime(client *redis.Client, db *gorm.DB) *int {
+	if gm.ProhibitionTime == nil {
+		return nil
+	}
+	t, err := client.TTL(fmt.Sprintf("prohibition__%d", gm.ID)).Result()
+	if err != nil {
+		// 查不到就说明过期了
+		// 就把这个值改回去
+		db.Model(&gm).Update("prohibition_time", nil)
+		return nil
+	}
+	// -2在redis中代表键不存在
+	if t == -2*time.Second {
+		db.Model(&gm).Update("prohibition_time", nil)
+		return nil
+	}
+	res := int(t / time.Minute)
+	return &res
 }

@@ -3,7 +3,9 @@ package logic
 import (
 	"context"
 	"errors"
+	"fmt"
 	"im_server/im_group/group_models"
+	"time"
 
 	"im_server/im_group/group_api/internal/svc"
 	"im_server/im_group/group_api/internal/types"
@@ -53,5 +55,15 @@ func (l *GroupProhibitionUpdateLogic) GroupProhibitionUpdate(req *types.GroupPro
 	}
 
 	l.svcCtx.DB.Model(&member1).Update("prohibition_time", req.ProhibitionTime)
+
+	// 利用redis的过期时间去做这个禁言时间
+	key := fmt.Sprintf("prohibition__%d", member1.ID)
+	if req.ProhibitionTime != nil {
+		// 给redis设置一个key，过期时间是
+		l.svcCtx.Redis.Set(key, "1", time.Duration(*req.ProhibitionTime)*time.Minute)
+	} else {
+		l.svcCtx.Redis.Del(key)
+	}
+
 	return
 }
