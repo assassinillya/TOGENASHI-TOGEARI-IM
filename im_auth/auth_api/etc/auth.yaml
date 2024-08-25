@@ -35,3 +35,7 @@ WhiteList:
   - /api/auth/logout
   - /api/file/.{8}-.{4}-.{4}-.{4}-.{12}
   - /api/settings/open_login
+KqPusherConf:
+  Brokers:
+    - 172.20.10.3:9092
+  Topic: logs-topic

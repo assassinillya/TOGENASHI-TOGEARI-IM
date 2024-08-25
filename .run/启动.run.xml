@@ -5,6 +5,7 @@
     <toRun name="13_chat_rpc" type="GoApplicationRunConfiguration" />
     <toRun name="1_user_rpc" type="GoApplicationRunConfiguration" />
     <toRun name="21_group_api" type="GoApplicationRunConfiguration" />
+    <toRun name="22_logs" type="GoApplicationRunConfiguration" />
     <toRun name="4_file" type="GoApplicationRunConfiguration" />
     <toRun name="5_auth" type="GoApplicationRunConfiguration" />
     <toRun name="6_settings" type="GoApplicationRunConfiguration" />

@@ -30,6 +30,10 @@ type Config struct {
 		AppKey   string
 		Redirect string
 	}
-	UserRpc   zrpc.RpcClientConf
-	WhiteList []string //白名单
+	UserRpc      zrpc.RpcClientConf
+	WhiteList    []string //白名单
+	KqPusherConf struct {
+		Brokers []string
+		Topic   string
+	}
 }
