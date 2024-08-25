@@ -7,6 +7,7 @@ import (
 	"im_server/im_chat/chat_models"
 	"im_server/im_file/file_model"
 	"im_server/im_group/group_models"
+	"im_server/im_logs/logs_model"
 	"im_server/im_user/user_models"
 	"log"
 )
@@ -38,6 +39,7 @@ func main() {
 			&group_models.GroupUserMsgDeleteModel{}, // 用户删除聊天记录表
 			&group_models.GroupUserTopModel{},       // 用户置顶群聊表
 			&file_model.FileModel{},                 // 文件表
+			&logs_model.LogModel{},                  // 日志表
 		)
 
 		if err != nil {

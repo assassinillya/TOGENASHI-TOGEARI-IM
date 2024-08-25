@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/zeromicro/go-zero/core/service"
+	"im_server/common/middleware"
 	"im_server/im_logs/logs_api/internal/mqs"
 
 	"im_server/im_logs/logs_api/internal/config"
@@ -28,6 +29,8 @@ func main() {
 
 	ctx := svc.NewServiceContext(c)
 	handler.RegisterHandlers(server, ctx)
+	// 设置全局中间件
+	server.Use(middleware.LogActionMiddleware)
 
 	serviceGroup := service.NewServiceGroup()
 	defer serviceGroup.Stop()
