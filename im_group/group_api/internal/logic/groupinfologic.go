@@ -3,10 +3,11 @@ package logic
 import (
 	"context"
 	"errors"
+	"fmt"
 	"im_server/im_group/group_api/internal/svc"
 	"im_server/im_group/group_api/internal/types"
 	"im_server/im_group/group_models"
-	"im_server/im_user/user_rpc/users"
+	"im_server/im_user/user_rpc/types/user_rpc"
 	"im_server/utils/set"
 
 	"github.com/zeromicro/go-zero/core/logx"
@@ -28,78 +29,76 @@ func NewGroupInfoLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GroupIn
 
 func (l *GroupInfoLogic) GroupInfo(req *types.GroupInfoRequest) (resp *types.GroupInfoResponse, err error) {
 
+	fmt.Println(l.ctx.Value("clientIP"), l.ctx.Value("userID"))
+
 	var groupModel group_models.GroupModel
 	err = l.svcCtx.DB.Preload("MemberList").Take(&groupModel, req.ID).Error
 	if err != nil {
 		return nil, errors.New("群不存在")
 	}
-
-	// 能调用这个接口的只能是这个群的成员
+	// 谁能调这个接口 必须得是这个群的成员
 	var member group_models.GroupMemberModel
-	err = l.svcCtx.DB.Take(&member, "user_id = ? and group_id = ?", req.UserID, req.ID).Error
-
+	err = l.svcCtx.DB.Take(&member, "group_id = ? and user_id = ?", req.ID, req.UserID).Error
 	if err != nil {
-		logx.Error(err)
-		return nil, errors.New("并非该群成员")
+		return nil, errors.New("该用户不是群成员")
 	}
-
-	// 算在线用户总数
 
 	resp = &types.GroupInfoResponse{
-		GroupID:         groupModel.ID,
-		Title:           groupModel.Title,
-		Abstract:        groupModel.Abstract,
-		MemberCount:     len(groupModel.MemberList),
-		Avatar:          groupModel.Avatar,
-		Role:            member.Role,
-		IsProhibition:   groupModel.IsProhibition,
-		ProhibitionTime: member.GetProhibitionTime(l.svcCtx.Redis, l.svcCtx.DB),
+		GroupID:     groupModel.ID,
+		Title:       groupModel.Title,
+		Abstract:    groupModel.Abstract,
+		MemberCount: len(groupModel.MemberList),
+		Avatar:      groupModel.Avatar,
+		Role:        member.Role,
 	}
-
 	// 查用户列表信息
 	var userIDList []uint32
 	var userAllIDList []uint32
 	for _, model := range groupModel.MemberList {
-		userAllIDList = append(userAllIDList, uint32(model.UserID))
-		if model.Role == 3 {
-			continue
+		if model.Role == 1 || model.Role == 2 {
+			userIDList = append(userIDList, uint32(model.UserID))
 		}
-		userIDList = append(userIDList, uint32(model.UserID))
+		userAllIDList = append(userAllIDList, uint32(model.UserID))
 	}
 
-	userListResponse, err := l.svcCtx.UserRpc.UserListInfo(context.Background(), &users.UserListInfoRequest{
+	userListResponse, err := l.svcCtx.UserRpc.UserListInfo(context.Background(), &user_rpc.UserListInfoRequest{
 		UserIdList: userIDList,
 	})
 	if err != nil {
-		return
+		logx.Error(err)
+		return nil, errors.New("用户服务异常")
 	}
-
+	if userListResponse == nil {
+		logx.Error("用户服务异常")
+		return nil, errors.New("用户服务异常")
+	}
 	var creator types.UserInfo
 	var adminList = make([]types.UserInfo, 0)
 
-	// 查在线用户数量
-	userOnlineResp, err := l.svcCtx.UserRpc.UserOnlineList(context.Background(), &users.UserOnlineListRequest{})
+	// 算在线用户总数
+	// 用户服务需要去写一个在线的用户列表的方法
+	userOnlineResponse, err := l.svcCtx.UserRpc.UserOnlineList(context.Background(), &user_rpc.UserOnlineListRequest{})
 	if err == nil {
-		// 算群成员和总的在线人数群成员, 取交集
-		slice := set.Intersect(userAllIDList, userOnlineResp.UserIdList)
+		// 算群成员和总的在线人数成员，取交集
+		slice := set.Intersect(userOnlineResponse.UserIdList, userAllIDList)
 		resp.MemberOnlineCount = len(slice)
 	}
 
 	for _, model := range groupModel.MemberList {
+		if model.Role == 3 {
+			continue
+		}
+		userInfo := types.UserInfo{
+			UserID:   model.UserID,
+			Avatar:   userListResponse.UserInfo[uint32(model.UserID)].Avatar,
+			Nickname: userListResponse.UserInfo[uint32(model.UserID)].NickName,
+		}
 		if model.Role == 1 {
-			creator = types.UserInfo{
-				UserID:   model.UserID,
-				Avatar:   userListResponse.UserInfo[uint32(model.UserID)].Avatar,
-				Nickname: userListResponse.UserInfo[uint32(model.UserID)].NickName,
-			}
+			creator = userInfo
+			continue
 		}
 		if model.Role == 2 {
-			cnt := types.UserInfo{
-				UserID:   model.UserID,
-				Avatar:   userListResponse.UserInfo[uint32(model.UserID)].Avatar,
-				Nickname: userListResponse.UserInfo[uint32(model.UserID)].NickName,
-			}
-			adminList = append(adminList, cnt)
+			adminList = append(adminList, userInfo)
 		}
 	}
 	resp.Creator = creator

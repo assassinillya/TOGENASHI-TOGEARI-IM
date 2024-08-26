@@ -37,5 +37,5 @@ WhiteList:
   - /api/settings/open_login
 KqPusherConf:
   Brokers:
-    - 172.20.10.3:9092
+    - 192.168.50.127:9092
   Topic: logs-topic

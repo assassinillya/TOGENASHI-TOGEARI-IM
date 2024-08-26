@@ -72,8 +72,14 @@ func (l *ChatSessionLogic) ChatSession(req *types.ChatSessionRequest) (resp *typ
 			userIDList = append(userIDList, uint32(req.UserID))
 		}
 	}
-
-	response, err := l.svcCtx.UserRpc.UserListInfo(context.Background(), &user_rpc.UserListInfoRequest{
+	// 使用客户端拦截器实现
+	//fmt.Println(l.ctx.Value("clientIP").(string),l.ctx.Value("userID").(string))
+	//clientIPStr:= l.ctx.Value("clientIP").(string)
+	//userIDStr:= l.ctx.Value("userID").(string)
+	//fmt.Println(clientIPStr,userIDStr)
+	//md:= metadata.New(map[string]string{"clientIP":clientIPStr, "userID": userIDStr})
+	//ctx := metadata.NewOutgoingContext(context.Background(), md)
+	response, err := l.svcCtx.UserRpc.UserListInfo(l.ctx, &user_rpc.UserListInfoRequest{
 		UserIdList: userIDList,
 	})
 
@@ -91,6 +97,7 @@ func (l *ChatSessionLogic) ChatSession(req *types.ChatSessionRequest) (resp *typ
 		}
 		if data.RU != req.UserID {
 			s.UserID = data.RU
+			fmt.Println(uint32(s.UserID))
 			s.Avatar = response.UserInfo[uint32(s.UserID)].Avatar
 			s.Nickname = response.UserInfo[uint32(s.UserID)].NickName
 
