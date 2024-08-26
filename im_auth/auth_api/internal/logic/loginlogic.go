@@ -2,11 +2,13 @@ package logic
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"im_server/im_auth/auth_models"
 	"im_server/utils/jwts"
 	"im_server/utils/pwd"
+	"strconv"
 
 	"im_server/im_auth/auth_api/internal/svc"
 	"im_server/im_auth/auth_api/internal/types"
@@ -54,7 +56,33 @@ func (l *LoginLogic) Login(req *types.LoginRequest) (resp *types.LoginResponse, 
 		return
 	}
 
-	err = l.svcCtx.KqPusherClient.Push(l.ctx, fmt.Sprintf("%s 用户登录成功", user.Nickname))
+	ctx := context.WithValue(l.ctx, "userID", fmt.Sprintf("%d", user.ID))
+
+	type Request struct {
+		LogType int8   `json:"log_type"` // 日志类型 2 操作日志 3 运行日志
+		IP      string `json:"ip"`
+		UserID  uint   `json:"user_id"`
+		Level   string `json:"level"`
+		Title   string `json:"title"`
+		Content string `json:"content"` // 日志详情
+		Service string `json:"service"` // 服务 记录微服务的名称
+	}
+
+	userID := ctx.Value("userID").(string)
+	userIntID, _ := strconv.Atoi(userID)
+
+	req1 := Request{
+		LogType: 2,
+		IP:      ctx.Value("clientIP").(string),
+		UserID:  uint(userIntID),
+		Level:   "info",
+		Title:   fmt.Sprintf("%s 用户登录成功", user.Nickname),
+		Content: "xxx",
+		Service: l.svcCtx.Config.Name,
+	}
+	byteData, _ := json.Marshal(req1)
+
+	err = l.svcCtx.KqPusherClient.Push(l.ctx, string(byteData))
 	if err != nil {
 		logx.Error(err)
 	}

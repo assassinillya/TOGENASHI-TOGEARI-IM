@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/zeromicro/go-zero/core/service"
+	"im_server/common/etcd"
 	"im_server/common/middleware"
 	"im_server/im_logs/logs_api/internal/mqs"
 
@@ -40,6 +41,7 @@ func main() {
 	}
 
 	serviceGroup.Start()
+	etcd.DeliveryAddress(c.Etcd, c.Name+"_api", fmt.Sprintf("%s:%d", c.Host, c.Port))
 	fmt.Printf("Starting server at %s:%d...\n", c.Host, c.Port)
 	server.Start()
 }

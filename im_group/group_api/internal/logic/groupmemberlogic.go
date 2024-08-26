@@ -49,7 +49,7 @@ func (l *GroupMemberLogic) GroupMember(req *types.GroupMemberRequest) (resp *typ
 		return nil, errors.New("不支持的排序模式")
 	}
 
-	column := fmt.Sprintf(fmt.Sprintf("(select group_msg_models.created_at from group_msg_models where group_member_models.group_id = %d  and group_msg_models.send_user_id = user_id) as new_msg_date", req.ID))
+	column := fmt.Sprintf(fmt.Sprintf("(select group_msg_models.created_at from group_msg_models  where group_member_models.group_id = %d  and group_msg_models.send_user_id = user_id) as new_msg_date", req.ID))
 
 	memberList, count, _ := list_query.ListQuery(l.svcCtx.DB, Data{}, list_query.Option{
 		PageInfo: models.PageInfo{
