@@ -4,6 +4,7 @@ import (
 	"github.com/go-redis/redis"
 	"github.com/zeromicro/go-zero/zrpc"
 	"gorm.io/gorm"
+	"im_server/common/zrpc_interceptor"
 	"im_server/core"
 	"im_server/im_chat/chat_rpc/chat"
 	"im_server/im_chat/chat_rpc/types/chat_rpc"
@@ -27,7 +28,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		Config:  c,
 		DB:      mysqlDb,
 		Redis:   client,
-		UserRpc: users.NewUsers(zrpc.MustNewClient(c.UserRpc)),
-		ChatRpc: chat.NewChat(zrpc.MustNewClient(c.ChatRpc)),
+		UserRpc: users.NewUsers(zrpc.MustNewClient(c.UserRpc, zrpc.WithUnaryClientInterceptor(zrpc_interceptor.ClientInfoInterceptor))),
+		ChatRpc: chat.NewChat(zrpc.MustNewClient(c.ChatRpc, zrpc.WithUnaryClientInterceptor(zrpc_interceptor.ClientInfoInterceptor))),
 	}
 }

@@ -85,7 +85,7 @@ func (l *GroupHistoryLogic) GroupHistory(req *types.GroupHistoryRequest) (resp *
 		userIDList = append(userIDList, uint32(model.SendUserID))
 	}
 	userIDList = utils.DeduplicationList(userIDList)
-	userListResponse, err1 := l.svcCtx.UserRpc.UserListInfo(context.Background(), &user_rpc.UserListInfoRequest{
+	userListResponse, err1 := l.svcCtx.UserRpc.UserListInfo(l.ctx, &user_rpc.UserListInfoRequest{
 		UserIdList: userIDList,
 	})
 
