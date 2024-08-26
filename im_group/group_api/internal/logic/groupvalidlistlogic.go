@@ -51,7 +51,7 @@ func (l *GroupValidListLogic) GroupValidList(req *types.GroupValidListRequest) (
 	}
 
 	// 是谁想加群?
-	userList, err1 := l.svcCtx.UserRpc.UserListInfo(context.Background(), &user_rpc.UserListInfoRequest{
+	userList, err1 := l.svcCtx.UserRpc.UserListInfo(l.ctx, &user_rpc.UserListInfoRequest{
 		UserIdList: userIDList,
 	})
 

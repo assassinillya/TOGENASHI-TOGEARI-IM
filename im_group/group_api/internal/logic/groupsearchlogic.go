@@ -41,7 +41,7 @@ func (l *GroupSearchLogic) GroupSearch(req *types.GroupSearchRequest) (resp *typ
 		Where:    l.svcCtx.DB.Where("is_search = 1 and ( id = ? or title like ? )", req.Key, fmt.Sprintf("%%%s%%", req.Key)),
 	})
 
-	userOnlineResponse, err := l.svcCtx.UserRpc.UserOnlineList(context.Background(), &user_rpc.UserOnlineListRequest{})
+	userOnlineResponse, err := l.svcCtx.UserRpc.UserOnlineList(l.ctx, &user_rpc.UserOnlineListRequest{})
 	var userOnlineIDList []uint
 	if err == nil {
 		// 服务降级，如果用户rpc方法挂了，只是页面上看到在线人数是0而已，不会影响这个群搜索功能

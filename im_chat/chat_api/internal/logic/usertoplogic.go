@@ -29,7 +29,7 @@ func NewUserTopLogic(ctx context.Context, svcCtx *svc.ServiceContext) *UserTopLo
 func (l *UserTopLogic) UserTop(req *types.UserTopRequest) (resp *types.UserTopResponse, err error) {
 	if req.UserID != req.FriendID {
 		// 判断是否为好友
-		isFriendResp, err2 := l.svcCtx.UserRpc.IsFriend(context.Background(), &user_rpc.IsFriendRequest{
+		isFriendResp, err2 := l.svcCtx.UserRpc.IsFriend(l.ctx, &user_rpc.IsFriendRequest{
 			User1: uint32(req.UserID),
 			User2: uint32(req.FriendID),
 		})
