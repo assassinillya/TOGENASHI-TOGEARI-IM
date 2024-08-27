@@ -1,25 +1,75 @@
 package log_stash
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/zeromicro/go-queue/kq"
 	"github.com/zeromicro/go-zero/core/logx"
+	"io"
+	"net/http"
 	"strconv"
+	"strings"
 )
 
 type Pusher struct {
-	LogType int8   `json:"logType"` // 日志类型 2 操作日志 3 运行日志
-	IP      string `json:"ip"`
-	UserID  uint   `json:"userID"`
-	Level   string `json:"level"`
-	Title   string `json:"title"`
-	Content string `json:"content"` // 日志详情
-	Service string `json:"service"` // 服务 记录微服务的名称
-	client  *kq.Pusher
-	items   []string
-	ctx     context.Context
+	LogType    int8   `json:"logType"` // 日志类型 2 操作日志 3 运行日志
+	IP         string `json:"ip"`
+	UserID     uint   `json:"userID"`
+	Level      string `json:"level"`
+	Title      string `json:"title"`
+	Content    string `json:"content"` // 日志详情
+	Service    string `json:"service"` // 服务 记录微服务的名称
+	client     *kq.Pusher
+	items      []string
+	ctx        context.Context
+	request    string
+	headers    string
+	response   string
+	isRequest  bool
+	isHeaders  bool
+	isResponse bool
+}
+
+func (p *Pusher) IsRequest() {
+	p.isRequest = true
+}
+
+func (p *Pusher) IsHeaders() {
+	p.isHeaders = true
+}
+func (p *Pusher) IsResponse() {
+	p.isResponse = true
+}
+
+// SetRequest 设置一组入参
+func (p *Pusher) SetRequest(r *http.Request) {
+	// 请求头
+	// 请求体
+	// 请求路径，请求方法
+	// 关于请求体的问题，拿了之后要还回去
+	// 一定要在参数绑定之前调用
+	method := r.Method
+	path := r.URL.String()
+	byteData, _ := io.ReadAll(r.Body)
+	r.Body = io.NopCloser(bytes.NewBuffer(byteData))
+	p.request = fmt.Sprintf(
+		`<div class="log_request">
+<div class="log_request_head">
+	<span class="log_request_method %s">%s</span>
+	<span class="log_request_path">%s</span>
+</div>
+	<div class="log_request_body">
+		<pre class="log_json_body">%s</pre>
+	</div>
+</div>`, strings.ToLower(method), method, path, string(byteData))
+
+}
+
+func (p *Pusher) SetHeaders(r *http.Request) {
+}
+func (p *Pusher) SetResponse(w http.ResponseWriter) {
 }
 
 func (p *Pusher) Save(ctx context.Context) {
@@ -33,12 +83,25 @@ func (p *Pusher) Save(ctx context.Context) {
 		return
 	}
 
-	if len(p.items) > 0 {
-		for _, item := range p.items {
-			p.Content += item
-		}
-		p.items = []string{}
+	var items []string
+	if p.isRequest {
+		items = append(items, p.request)
 	}
+
+	if p.isHeaders {
+		items = append(items, p.headers)
+	}
+
+	items = append(items, p.items...) // todo 不知道这啥意思
+	if p.isResponse {
+		items = append(items, p.response)
+	}
+
+	for _, item := range items {
+		p.Content += item
+	}
+
+	p.items = []string{}
 
 	userIDs := p.ctx.Value("userID")
 	var userID uint

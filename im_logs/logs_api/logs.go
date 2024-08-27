@@ -31,7 +31,7 @@ func main() {
 	ctx := svc.NewServiceContext(c)
 	handler.RegisterHandlers(server, ctx)
 	// 设置全局中间件
-	server.Use(middleware.LogActionMiddleware)
+	server.Use(middleware.LogMiddleware)
 
 	serviceGroup := service.NewServiceGroup()
 	defer serviceGroup.Stop()

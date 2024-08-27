@@ -1,0 +1,43 @@
+热点
+docker stop kafka-server
+docker rm kafka-server
+docker stop kafka-map
+docker rm kafka-map
+docker stop zookeeper-server
+docker rm zookeeper-server
+docker network create app-tier --driver bridge
+docker run -d --restart=always --name zookeeper-server --network app-tier -e ALLOW_ANONYMOUS_LOGIN=yes bitnami/zookeeper:latest
+docker run -d --restart=always --name kafka-server --network app-tier -p 9092:9092 -e ALLOW_PLAINTEXT_LISTENER=yes -e KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper-server:2181 -e KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://172.20.10.3:9092 bitnami/kafka:latest
+docker run -d --restart=always  --name kafka-map --network app-tier  -p 9001:8080 -v /opt/kafka-map/data:/usr/local/kafka-map/data  -e DEFAULT_USERNAME=admin  -e DEFAULT_PASSWORD=123456 --restart always dushixiang/kafka-map:latest
+
+工位
+docker stop kafka-server
+docker rm kafka-server
+docker stop kafka-map
+docker rm kafka-map
+docker stop zookeeper-server
+docker rm zookeeper-server
+docker network create app-tier --driver bridge
+docker run -d --restart=always --name zookeeper-server --network app-tier -e ALLOW_ANONYMOUS_LOGIN=yes bitnami/zookeeper:latest
+docker run -d --restart=always --name kafka-server --network app-tier -p 9092:9092 -e ALLOW_PLAINTEXT_LISTENER=yes -e KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper-server:2181 -e KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://192.168.3.47:9092 bitnami/kafka:latest
+docker run -d --restart=always  --name kafka-map --network app-tier  -p 9001:8080 -v /opt/kafka-map/data:/usr/local/kafka-map/data  -e DEFAULT_USERNAME=admin  -e DEFAULT_PASSWORD=123456 --restart always dushixiang/kafka-map:latest
+
+家里
+docker stop kafka-server
+docker rm kafka-server
+docker stop kafka-map
+docker rm kafka-map
+docker stop zookeeper-server
+docker rm zookeeper-server
+docker network create app-tier --driver bridge
+docker run -d --restart=always --name zookeeper-server --network app-tier -e ALLOW_ANONYMOUS_LOGIN=yes bitnami/zookeeper:latest
+docker run -d --restart=always --name kafka-server --network app-tier -p 9092:9092 -e ALLOW_PLAINTEXT_LISTENER=yes -e KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper-server:2181 -e KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://192.168.50.127:9092 bitnami/kafka:latest
+docker run -d --restart=always  --name kafka-map --network app-tier  -p 9001:8080 -v /opt/kafka-map/data:/usr/local/kafka-map/data  -e DEFAULT_USERNAME=admin  -e DEFAULT_PASSWORD=123456 --restart always dushixiang/kafka-map:latest
+
+auth.yaml要改
+网关的yaml也要改
+topic要加
+
+自动更改
+
+docker inspect kafka-server -f "{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}" | xargs -I {} docker run -d --restart=always --name kafka-server --network app-tier -p 9092:9092 -e ALLOW_PLAINTEXT_LISTENER=yes -e KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper-server:2181 -e KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://{}:9092 bitnami/kafka:latest

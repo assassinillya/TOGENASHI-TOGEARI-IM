@@ -28,7 +28,7 @@ func main() {
 	handler.RegisterHandlers(server, ctx)
 
 	// 设置全局中间件
-	server.Use(middleware.LogActionMiddleware)
+	server.Use(middleware.LogActionMiddleware(ctx.ActionLogs))
 
 	etcd.DeliveryAddress(c.Etcd, c.Name+"_api", fmt.Sprintf("%s:%d", c.Host, c.Port))
 
