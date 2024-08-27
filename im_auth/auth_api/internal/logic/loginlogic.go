@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"im_server/common/log_stash"
 	"im_server/im_auth/auth_api/internal/svc"
 	"im_server/im_auth/auth_api/internal/types"
 	"im_server/im_auth/auth_models"
@@ -56,9 +55,11 @@ func (l *LoginLogic) Login(req *types.LoginRequest) (resp *types.LoginResponse, 
 
 	ctx := context.WithValue(l.ctx, "userID", fmt.Sprintf("%d", user.ID))
 
-	er := log_stash.NewActionPusher(ctx, l.svcCtx.KqPusherClient, l.svcCtx.Config.Name)
-	er.Info(fmt.Sprintf("%s 用户登录成功", user.Nickname), "")
-	er.Save()
+	//er := log_stash.NewActionPusher(ctx, l.svcCtx.KqPusherClient, l.svcCtx.Config.Name)
+	//er.Info(fmt.Sprintf("%s 用户登录成功", user.Nickname), "")
+	//er.Save()
+	l.svcCtx.ActionLogs.Info(fmt.Sprintf("%s 用户登录成功", user.Nickname), "")
+	l.svcCtx.ActionLogs.Save(ctx)
 
 	return &types.LoginResponse{Token: token}, nil
 }

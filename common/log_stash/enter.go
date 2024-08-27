@@ -3,6 +3,7 @@ package log_stash
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/zeromicro/go-queue/kq"
 	"github.com/zeromicro/go-zero/core/logx"
 	"strconv"
@@ -19,7 +20,19 @@ type Pusher struct {
 	client  *kq.Pusher
 }
 
-func (p *Pusher) Save() {
+func (p *Pusher) Save(ctx context.Context) {
+	fmt.Println(p.client)
+	userIDs := ctx.Value("UserID")
+	var userID uint
+	if userIDs != nil {
+		userIntID, _ := strconv.Atoi(userIDs.(string))
+		userID = uint(userIntID)
+	}
+
+	clientIP := ctx.Value("clientIP").(string)
+	p.IP = clientIP
+	p.UserID = userID
+
 	if p.client == nil {
 		return
 	}
@@ -36,27 +49,27 @@ func (p *Pusher) Info(title string, content string) {
 	p.Content = content
 }
 
-func NewActionPusher(ctx context.Context, client *kq.Pusher, serviceName string) *Pusher {
-	return NewPusher(ctx, client, 2, serviceName)
+func NewActionPusher(client *kq.Pusher, serviceName string) *Pusher {
+	return NewPusher(client, 2, serviceName)
 
 }
-func NewRuntimePusher(ctx context.Context, client *kq.Pusher, serviceName string) *Pusher {
-	return NewPusher(ctx, client, 3, serviceName)
+func NewRuntimePusher(client *kq.Pusher, serviceName string) *Pusher {
+	return NewPusher(client, 3, serviceName)
 }
 
-func NewPusher(ctx context.Context, client *kq.Pusher, LogType int8, serviceName string) *Pusher {
-	userIDs := ctx.Value("UserID")
-	var userID uint
-	if userIDs != nil {
-		userIntID, _ := strconv.Atoi(userIDs.(string))
-		userID = uint(userIntID)
-	}
-
-	clientIP := ctx.Value("clientIP").(string)
+func NewPusher(client *kq.Pusher, LogType int8, serviceName string) *Pusher {
+	//userIDs := ctx.Value("UserID")
+	//var userID uint
+	//if userIDs != nil {
+	//	userIntID, _ := strconv.Atoi(userIDs.(string))
+	//	userID = uint(userIntID)
+	//}
+	//
+	//clientIP := ctx.Value("clientIP").(string)
 
 	return &Pusher{
-		IP:      clientIP,
-		UserID:  userID,
+		//IP:      clientIP,
+		//UserID:  userID,
 		LogType: LogType,
 		Service: serviceName,
 		client:  client,

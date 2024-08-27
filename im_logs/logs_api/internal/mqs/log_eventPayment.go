@@ -70,5 +70,7 @@ func (l *LogEvent) Consume(ctx context.Context, key, val string) error {
 		logx.Error(err)
 		return err
 	}
+
+	logx.Infof("日志 %s 保存成功", req.Title)
 	return nil
 }
