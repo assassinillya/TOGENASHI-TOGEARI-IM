@@ -50,6 +50,9 @@ func (p *Pusher) Save(ctx context.Context) {
 	clientIP := p.ctx.Value("clientIP").(string)
 	p.IP = clientIP
 	p.UserID = userID
+	if p.Level == ""{
+		p.Level = "info"
+	}
 
 	byteData, err := json.Marshal(p)
 	if err != nil {
@@ -58,7 +61,25 @@ func (p *Pusher) Save(ctx context.Context) {
 	p.client.Push(p.ctx, string(byteData))
 }
 
+// SetItem 这个函数是为了兼容之前的版本
 func (p *Pusher) SetItem(label string, val any) {
+	p.setItem("info",label,val)
+}
+
+
+func (p *Pusher) SetItemInfo(label string, val any) {
+	p.setItem("info",label,val)
+}
+
+func (p *Pusher) SetItemWarn(label string, val any) {
+	p.setItem("warn",label,val)
+}
+
+func (p *Pusher) SetItemErr(label string, val any) {
+	p.setItem("err",label,val)
+}
+
+func (p *Pusher) setItem(level string,label string, val any) {
 	var str string
 	switch value := val.(type) {
 	case string:
@@ -69,7 +90,8 @@ func (p *Pusher) SetItem(label string, val any) {
 		byteData, _ := json.Marshal(val)
 		str = fmt.Sprintf("<div class=\"log_item_label\">%s</div> <div class=\"log_item_content\">%s</div>", label, string(byteData))
 	}
-	p.items = append(p.items, str)
+	logItem := fmt.Sprintf("<div class=\"log_item %s\">%s</div>", level, str)
+	p.items = append(p.items, logItem)
 }
 
 // Info 为什么是指针 因为要改值
