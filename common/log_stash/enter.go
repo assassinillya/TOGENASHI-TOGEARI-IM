@@ -50,7 +50,7 @@ func (p *Pusher) Save(ctx context.Context) {
 	clientIP := p.ctx.Value("clientIP").(string)
 	p.IP = clientIP
 	p.UserID = userID
-	if p.Level == ""{
+	if p.Level == "" {
 		p.Level = "info"
 	}
 
@@ -63,23 +63,22 @@ func (p *Pusher) Save(ctx context.Context) {
 
 // SetItem 这个函数是为了兼容之前的版本
 func (p *Pusher) SetItem(label string, val any) {
-	p.setItem("info",label,val)
+	p.setItem("info", label, val)
 }
 
-
 func (p *Pusher) SetItemInfo(label string, val any) {
-	p.setItem("info",label,val)
+	p.setItem("info", label, val)
 }
 
 func (p *Pusher) SetItemWarn(label string, val any) {
-	p.setItem("warn",label,val)
+	p.setItem("warn", label, val)
 }
 
 func (p *Pusher) SetItemErr(label string, val any) {
-	p.setItem("err",label,val)
+	p.setItem("err", label, val)
 }
 
-func (p *Pusher) setItem(level string,label string, val any) {
+func (p *Pusher) setItem(level string, label string, val any) {
 	var str string
 	switch value := val.(type) {
 	case string:
