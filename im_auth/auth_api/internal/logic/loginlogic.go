@@ -31,13 +31,20 @@ func (l *LoginLogic) Login(req *types.LoginRequest) (resp *types.LoginResponse, 
 
 	var user auth_models.UserModel
 	err = l.svcCtx.DB.Take(&user, "id = ?", req.UserName).Error
+	l.svcCtx.ActionLogs.Info("用户登录操作")
+	l.svcCtx.ActionLogs.SetItem("userName", req.UserName)
+
+	defer l.svcCtx.ActionLogs.Save(l.ctx)
 	if err != nil {
-		err = errors.New("用户名或密码错误")
+		l.svcCtx.ActionLogs.Err(req.UserName + "用户名不存在")
+		err = errors.New("用户名不存在")
 		return
 	}
 
 	if pwd.CheckPwd(user.Pwd, req.Password) == false {
 		//logx.Error(err)
+		l.svcCtx.ActionLogs.SetItem("password", req.Password)
+		l.svcCtx.ActionLogs.Err("用户" + req.UserName + " 密码错误")
 		err = errors.New("用户名或密码错误")
 		return
 	}
@@ -49,6 +56,8 @@ func (l *LoginLogic) Login(req *types.LoginRequest) (resp *types.LoginResponse, 
 	}, l.svcCtx.Config.Auth.AccessSecret, l.svcCtx.Config.Auth.AccessExpire)
 	if err != nil {
 		logx.Error(err)
+		l.svcCtx.ActionLogs.SetItem("error", err.Error())
+		l.svcCtx.ActionLogs.Err("服务内部错误")
 		err = errors.New("服务内部错误")
 		return
 	}
@@ -58,8 +67,8 @@ func (l *LoginLogic) Login(req *types.LoginRequest) (resp *types.LoginResponse, 
 	//er := log_stash.NewActionPusher(ctx, l.svcCtx.KqPusherClient, l.svcCtx.Config.Name)
 	//er.Info(fmt.Sprintf("%s 用户登录成功", user.Nickname), "")
 	//er.Save()
-	l.svcCtx.ActionLogs.Info(fmt.Sprintf("%s 用户登录成功", user.Nickname), "")
-	l.svcCtx.ActionLogs.Save(ctx)
+	l.svcCtx.ActionLogs.Info("用户" + user.Nickname + " 登录成功")
+	l.svcCtx.ActionLogs.SetCtx(ctx)
 
 	return &types.LoginResponse{Token: token}, nil
 }

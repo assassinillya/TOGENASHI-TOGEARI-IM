@@ -23,9 +23,9 @@ func NewPaymentSuccess(ctx context.Context, svcCtx *svc.ServiceContext) *LogEven
 }
 
 type Request struct {
-	LogType int8   `json:"log_type"` // 日志类型 2 操作日志 3 运行日志
+	LogType int8   `json:"logType"` // 日志类型 2 操作日志 3 运行日志
 	IP      string `json:"ip"`
-	UserID  uint   `json:"user_id"`
+	UserID  uint   `json:"userID"`
 	Level   string `json:"level"`
 	Title   string `json:"title"`
 	Content string `json:"content"` // 日志详情

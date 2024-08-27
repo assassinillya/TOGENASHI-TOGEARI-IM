@@ -18,35 +18,78 @@ type Pusher struct {
 	Content string `json:"content"` // 日志详情
 	Service string `json:"service"` // 服务 记录微服务的名称
 	client  *kq.Pusher
+	items   []string
+	ctx     context.Context
 }
 
 func (p *Pusher) Save(ctx context.Context) {
-	fmt.Println(p.client)
-	userIDs := ctx.Value("UserID")
+
+	if p.ctx == nil {
+		// 如果没有ctx则使用老的ctx
+		p.ctx = ctx
+	}
+
+	if p.client == nil {
+		return
+	}
+
+	if len(p.items) > 0 {
+		for _, item := range p.items {
+			p.Content += item
+		}
+		p.items = []string{}
+	}
+
+	userIDs := p.ctx.Value("userID")
 	var userID uint
 	if userIDs != nil {
 		userIntID, _ := strconv.Atoi(userIDs.(string))
 		userID = uint(userIntID)
 	}
 
-	clientIP := ctx.Value("clientIP").(string)
+	clientIP := p.ctx.Value("clientIP").(string)
 	p.IP = clientIP
 	p.UserID = userID
 
-	if p.client == nil {
-		return
-	}
 	byteData, err := json.Marshal(p)
 	if err != nil {
 		logx.Error(err)
 	}
-	p.client.Push(context.Background(), string(byteData))
+	p.client.Push(p.ctx, string(byteData))
+}
+
+func (p *Pusher) SetItem(label string, val any) {
+	var str string
+	switch value := val.(type) {
+	case string:
+		str = fmt.Sprintf("<div class=\"log_item_label\">%s</div> <div class=\"log_item_content\">%s</div>", label, value)
+	case int, uint, uint32, uint64, int32, int8:
+		str = fmt.Sprintf("<div class=\"log_item_label\">%s</div> <div class=\"log_item_content\">%d</div>", label, value)
+	default:
+		byteData, _ := json.Marshal(val)
+		str = fmt.Sprintf("<div class=\"log_item_label\">%s</div> <div class=\"log_item_content\">%s</div>", label, string(byteData))
+	}
+	p.items = append(p.items, str)
 }
 
 // Info 为什么是指针 因为要改值
-func (p *Pusher) Info(title string, content string) {
+func (p *Pusher) Info(title string) {
 	p.Title = title
-	p.Content = content
+	p.Level = "info"
+}
+
+func (p *Pusher) Warning(title string) {
+	p.Title = title
+	p.Level = "warning"
+}
+
+func (p *Pusher) Err(title string) {
+	p.Title = title
+	p.Level = "err"
+}
+
+func (p *Pusher) SetCtx(ctx context.Context) {
+	p.ctx = ctx
 }
 
 func NewActionPusher(client *kq.Pusher, serviceName string) *Pusher {
