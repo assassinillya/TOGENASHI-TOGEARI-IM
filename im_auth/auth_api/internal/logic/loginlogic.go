@@ -32,6 +32,8 @@ func (l *LoginLogic) Login(req *types.LoginRequest) (resp *types.LoginResponse, 
 	var user auth_models.UserModel
 	err = l.svcCtx.DB.Take(&user, "id = ?", req.UserName).Error
 	l.svcCtx.ActionLogs.IsRequest()
+	l.svcCtx.ActionLogs.IsResponse()
+	l.svcCtx.ActionLogs.IsHeaders()
 	l.svcCtx.ActionLogs.Info("用户登录操作")
 	l.svcCtx.ActionLogs.SetItem("userName", req.UserName)
 

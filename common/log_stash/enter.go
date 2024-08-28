@@ -30,6 +30,7 @@ type Pusher struct {
 	isRequest  bool
 	isHeaders  bool
 	isResponse bool
+	count      int
 }
 
 func (p *Pusher) IsRequest() {
@@ -41,6 +42,9 @@ func (p *Pusher) IsHeaders() {
 }
 func (p *Pusher) IsResponse() {
 	p.isResponse = true
+}
+func (p *Pusher) GetResponse() bool {
+	return p.isResponse
 }
 
 // SetRequest 设置一组入参
@@ -68,11 +72,28 @@ func (p *Pusher) SetRequest(r *http.Request) {
 }
 
 func (p *Pusher) SetHeaders(r *http.Request) {
+	byteData, _ := json.Marshal(r.Header)
+	p.headers = fmt.Sprintf(`<div class="log_request_header">
+	<div class="log_request_body">
+   		<pre class="log_json_body">%s</pre>
+	</div>
+</div>`, string(byteData))
 }
-func (p *Pusher) SetResponse(w http.ResponseWriter) {
+func (p *Pusher) SetResponse(w string) {
+	fmt.Println(1, w)
+	p.response = fmt.Sprintf(`
+<div class="log_response">
+	<pre class="log_json_body">%s</pre>
+</div>`, w)
+	p.Save(p.ctx)
 }
 
 func (p *Pusher) Save(ctx context.Context) {
+
+	if p.isResponse && p.count == 0 {
+		p.count = 1
+		return
+	}
 
 	if p.ctx == nil {
 		// 如果没有ctx则使用老的ctx
@@ -92,7 +113,7 @@ func (p *Pusher) Save(ctx context.Context) {
 		items = append(items, p.headers)
 	}
 
-	items = append(items, p.items...) // todo 不知道这啥意思
+	items = append(items, p.items...) // ...代表把p.items里的所有子元素
 	if p.isResponse {
 		items = append(items, p.response)
 	}
