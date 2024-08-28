@@ -13,5 +13,9 @@ type Config struct {
 	Mysql          struct {
 		DataSource string
 	}
-	Etcd string
+	Etcd         string
+	KqPusherConf struct {
+		Brokers []string
+		Topic   string
+	}
 }

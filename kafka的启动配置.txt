@@ -34,8 +34,7 @@ docker run -d --restart=always --name zookeeper-server --network app-tier -e ALL
 docker run -d --restart=always --name kafka-server --network app-tier -p 9092:9092 -e ALLOW_PLAINTEXT_LISTENER=yes -e KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper-server:2181 -e KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://192.168.50.127:9092 bitnami/kafka:latest
 docker run -d --restart=always  --name kafka-map --network app-tier  -p 9001:8080 -v /opt/kafka-map/data:/usr/local/kafka-map/data  -e DEFAULT_USERNAME=admin  -e DEFAULT_PASSWORD=123456 --restart always dushixiang/kafka-map:latest
 
-auth.yaml要改
-网关的yaml也要改
+网关的yaml要改
 topic要加
 
 自动更改
