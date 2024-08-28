@@ -7,6 +7,7 @@ import (
 	"im_server/im_logs/logs_api/internal/svc"
 	"im_server/im_logs/logs_model"
 	"im_server/im_user/user_rpc/types/user_rpc"
+	"im_server/utils/addr"
 	"sync"
 )
 
@@ -45,7 +46,7 @@ func (l *LogEvent) Consume(ctx context.Context, key, val string) error {
 	var info = logs_model.LogModel{
 		LogType: req.LogType,
 		IP:      req.IP,
-		Addr:    "内网地址",
+		Addr:    addr.GetAddr(req.IP),
 		UserID:  req.UserID,
 		Level:   req.Level,
 		Title:   req.Title,
