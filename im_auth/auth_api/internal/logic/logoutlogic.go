@@ -31,6 +31,8 @@ func (l *LogoutLogic) Logout(token string) (resp string, err error) {
 		return
 	}
 
+	l.svcCtx.RuntimeLogs.SetItem("xxx", "注销了")
+
 	payload, err := jwts.ParseToken(token, l.svcCtx.Config.Auth.AccessSecret)
 	if err != nil {
 		err = errors.New("token错误")

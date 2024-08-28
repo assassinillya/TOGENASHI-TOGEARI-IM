@@ -100,6 +100,10 @@ func (p *Pusher) Save(ctx context.Context) {
 		p.ctx = ctx
 	}
 
+	if ctx == nil {
+		p.ctx = context.Background()
+	}
+
 	if p.client == nil {
 		return
 	}
@@ -131,8 +135,10 @@ func (p *Pusher) Save(ctx context.Context) {
 		userID = uint(userIntID)
 	}
 
-	clientIP := p.ctx.Value("clientIP").(string)
-	p.IP = clientIP
+	clientIP, ok := p.ctx.Value("clientIP").(string)
+	if ok {
+		p.IP = clientIP
+	}
 	p.UserID = userID
 	if p.Level == "" {
 		p.Level = "info"
@@ -141,8 +147,13 @@ func (p *Pusher) Save(ctx context.Context) {
 	byteData, err := json.Marshal(p)
 	if err != nil {
 		logx.Error(err)
+		return
 	}
-	p.client.Push(p.ctx, string(byteData))
+	err = p.client.Push(p.ctx, string(byteData))
+	if err != nil {
+		logx.Error(err)
+		return
+	}
 }
 
 // SetItem 这个函数是为了兼容之前的版本
@@ -175,6 +186,10 @@ func (p *Pusher) setItem(level string, label string, val any) {
 	}
 	logItem := fmt.Sprintf("<div class=\"log_item %s\">%s</div>", level, str)
 	p.items = append(p.items, logItem)
+
+	if p.LogType == 3 {
+		p.Save(p.ctx)
+	}
 }
 
 // Info 为什么是指针 因为要改值

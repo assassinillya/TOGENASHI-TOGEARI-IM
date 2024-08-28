@@ -32,7 +32,7 @@ func (l *LoginLogic) Login(req *types.LoginRequest) (resp *types.LoginResponse, 
 	var user auth_models.UserModel
 	err = l.svcCtx.DB.Take(&user, "id = ?", req.UserName).Error
 	l.svcCtx.ActionLogs.IsRequest()
-	l.svcCtx.ActionLogs.IsResponse()
+	//l.svcCtx.ActionLogs.IsResponse()
 	l.svcCtx.ActionLogs.IsHeaders()
 	l.svcCtx.ActionLogs.Info("用户登录操作")
 	l.svcCtx.ActionLogs.SetItem("userName", req.UserName)
@@ -61,6 +61,7 @@ func (l *LoginLogic) Login(req *types.LoginRequest) (resp *types.LoginResponse, 
 		logx.Error(err)
 		l.svcCtx.ActionLogs.SetItem("error", err.Error())
 		l.svcCtx.ActionLogs.Err("服务内部错误")
+		l.svcCtx.RuntimeLogs.SetItemErr("服务内部错误", err.Error())
 		err = errors.New("服务内部错误")
 		return
 	}
