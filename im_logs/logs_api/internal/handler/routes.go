@@ -11,12 +11,25 @@ import (
 
 func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 	server.AddRoutes(
-		[]rest.Route{
-			{
-				Method:  http.MethodGet,
-				Path:    "/api/log/logs",
-				Handler: logListHandler(serverCtx),
-			},
-		},
+		rest.WithMiddlewares(
+			[]rest.Middleware{serverCtx.AdminMiddleware},
+			[]rest.Route{
+				{
+					Method:  http.MethodGet,
+					Path:    "/api/logs/logs",
+					Handler: logListHandler(serverCtx),
+				},
+				{
+					Method:  http.MethodDelete,
+					Path:    "/api/logs/logs",
+					Handler: logRemoveHandler(serverCtx),
+				},
+				{
+					Method:  http.MethodGet,
+					Path:    "/api/logs/logs/:id",
+					Handler: logReadHandler(serverCtx),
+				},
+			}...,
+		),
 	)
 }

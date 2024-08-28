@@ -1,6 +1,14 @@
 syntax = "v1"
 
-type LogListRequest {
+info (
+	title:   "type title here"
+	desc:    "type desc here"
+	author:  "type author here"
+	email:   "type email here"
+	version: "type version here"
+)
+
+type logListRequest {
 	Page  int `form:"page,optional"`
 	Limit int `form:"limit,optional"`
 	Key   int `form:"key,optional"`
@@ -8,27 +16,49 @@ type LogListRequest {
 
 type LogInfoResponse {
 	ID           uint   `json:"id"`
-	CreatedAt    string `json:"created_at"`
-	LogType      int8   `json:"logType"` // 日志类型 2 操作日志 3 运行日志
+	CreatedAt    string `json:"createdAt"`
+	LogType      int8   `json:"logType"` // 日志类型  2 操作日志 3 运行日志
 	IP           string `json:"ip"`
 	Addr         string `json:"addr"`
-	UserID       uint   `json:"userId"`
+	UserID       uint   `json:"userID"`
 	UserNickname string `json:"userNickname"`
 	UserAvatar   string `json:"userAvatar"`
 	Level        string `json:"level"`
 	Title        string `json:"title"`
 	Content      string `json:"content"` // 日志详情
-	Service      string `json:"service"` // 服务 记录微服务的名称
+	Service      string `json:"service"` // 服务  记录微服务的名称
 	IsRead       bool   `json:"isRead"`
 }
 
-type LogListResponse {
+type logListResponse {
 	List  []LogInfoResponse `json:"list"`
 	Count int               `json:"count"`
 }
 
+type logReadRequest {
+	ID uint `path:"id"`
+}
+
+type logReadResponse {}
+
+type logRemoveRequest {
+	IdList []uint `json:"idList"`
+}
+
+type logRemoveResponse {}
+
+@server (
+	middleware: AdminMiddleware
+)
 service logs {
 	@handler logList
-	get /api/log/logs (LogListRequest) returns (LogListResponse)
-} // goctl api go -api logs_api.api -dir . --home ../../template
+	get /api/logs/logs (logListRequest) returns (logListResponse) // 日志列表
 
+	@handler logRead
+	get /api/logs/logs/:id (logReadRequest) returns (logReadResponse) // 日志读取
+
+	@handler logRemove
+	delete /api/logs/logs (logRemoveRequest) returns (logRemoveResponse) // 日志删除
+}
+
+// goctl api go -api logs_api.api -dir . --home ../../template

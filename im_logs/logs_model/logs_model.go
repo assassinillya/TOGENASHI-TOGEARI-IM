@@ -14,4 +14,5 @@ type LogModel struct {
 	Title        string `gorm:"size:32" json:"title"`
 	Content      string `json:"content"`                // 日志详情
 	Service      string `gorm:"size:32" json:"service"` // 服务  记录微服务的名称
+	IsRead       bool   `json:"isRead"`
 }
