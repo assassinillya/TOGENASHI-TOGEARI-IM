@@ -1,0 +1,142 @@
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>1v1</title>
+</head>
+
+<body>
+<video id="localVideo" style="width: 320px; height: 240px;" autoplay muted></video>
+<video id="remoteVideo" style="width: 320px; height: 240px;" autoplay muted></video>
+<button id="startBtn" disabled>开始连接</button>
+<script>
+    // 获取摄像头返回的MediaStream
+    let localStream = null;
+
+    // 显示本地画面的VideoElement
+    let localVideo = document.getElementById("localVideo");
+    let remoteVideo = document.getElementById("remoteVideo");
+
+    let iceType;
+
+    let ws;
+
+    // 推流用的MediaStream
+    let pc = new RTCPeerConnection();
+    pc.addEventListener('icecandidate', (event) => {
+        if (event.candidate) {
+            ws.send(JSON.stringify({
+                type: iceType,
+                candidate: event.candidate
+            }));
+        }
+    })
+
+    pc.addEventListener("track", (event) => {
+        remoteVideo.srcObject = event.streams[0];
+    })
+
+    // 建立连接按钮
+    let startBtn = document.getElementById("startBtn");
+    startBtn.addEventListener('click', () => {
+        ws = new WebSocket('ws://192.168.3.47:9004/ws');
+        // websocket 连接成功消息
+        ws.addEventListener('open', () => {
+            // 向服务端发送连接消息
+            ws.send(JSON.stringify({
+                type: "connect"
+            }))
+        })
+
+        // 收到服务端消息
+        ws.addEventListener('message', (event) => {
+            let msg = JSON.parse(event.data);
+            switch (msg.type) {
+                case "connect":
+                    if (200 === msg.code) {
+                        console.log("连接成功，等待其他用户");
+                        startBtn.disabled = true;
+                    } else {
+                        console.log("连接失败，已经满员")
+                    }
+                    break;
+
+                case "create_offer":
+                    sendOffer();
+                    break;
+
+                case "offer":
+                    recvOffer(msg);
+                    break;
+
+                case "answer":
+                    recvAnswer(msg);
+                    break;
+
+                case "offer_ice":
+                case "answer_ice":
+                    pc.addIceCandidate(msg.candidate);
+                    break;
+
+                default:
+                    break;
+            }
+        })
+
+        ws.addEventListener('close', () => {
+            console.log("websocket 连接断开")
+            startBtn.disabled = false;
+        })
+
+    })
+
+    /**
+     * 获取摄像头
+     */
+    function getDevice() {
+        return new Promise((resolve, reject) => {
+            navigator.mediaDevices.getUserMedia({ audio: true, video: true }).then((mediaStream) => {
+                localStream = mediaStream;
+                localVideo.srcObject = mediaStream;
+                resolve(mediaStream);
+            }).catch((err) => {
+                reject(err);
+            })
+        })
+    }
+
+    function sendOffer() {
+        iceType = "offer_ice";
+        pc.addTrack(localStream.getVideoTracks()[0], localStream);
+        pc.createOffer({ offerToReceiveAudio: true, offerToReceiveVideo: true }).then((offer) => {
+            pc.setLocalDescription(offer).then(() => {
+                ws.send(JSON.stringify(offer));
+            })
+        })
+    }
+
+    function recvOffer(offer) {
+        iceType = "answer_ice";
+        pc.addTrack(localStream.getVideoTracks()[0], localStream);
+        pc.setRemoteDescription(offer).then(() => {
+            pc.createAnswer().then((answer) => {
+                pc.setLocalDescription(answer).then(() => {
+                    ws.send(JSON.stringify(answer));
+                })
+            })
+        })
+    }
+
+    function recvAnswer(answer) {
+        pc.setRemoteDescription(answer);
+    }
+
+    getDevice().then((mediastream) => {
+        // 获取摄像头成功
+        startBtn.disabled = false;
+    }).catch((err) => {
+        console.error("获取摄像头失败")
+    })
+</script>
+</body>
+</html>
