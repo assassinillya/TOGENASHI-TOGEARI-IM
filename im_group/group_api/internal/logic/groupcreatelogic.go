@@ -15,21 +15,21 @@ import (
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
-type Group_createLogic struct {
+type GroupCreateLogic struct {
 	logx.Logger
 	ctx    context.Context
 	svcCtx *svc.ServiceContext
 }
 
-func NewGroup_createLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Group_createLogic {
-	return &Group_createLogic{
+func NewGroupCreateLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GroupCreateLogic {
+	return &GroupCreateLogic{
 		Logger: logx.WithContext(ctx),
 		ctx:    ctx,
 		svcCtx: svcCtx,
 	}
 }
 
-func (l *Group_createLogic) Group_create(req *types.GroupCreateRequest) (resp *types.GroupCreateResponse, err error) {
+func (l *GroupCreateLogic) GroupCreate(req *types.GroupCreateRequest) (resp *types.GroupCreateResponse, err error) {
 	var groupModel = group_models.GroupModel{
 		Creator:      req.UserID, // 自己创建的群，自己就是群主
 		Abstract:     fmt.Sprintf("本群创建于%s: 群主很懒, 什么都没有留下", time.Now().Format(time.DateOnly)),

@@ -18,8 +18,8 @@ func groupCreateHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			return
 		}
 
-		l := logic.NewGroup_createLogic(r.Context(), svcCtx)
-		resp, err := l.Group_create(&req)
+		l := logic.NewGroupCreateLogic(r.Context(), svcCtx)
+		resp, err := l.GroupCreate(&req)
 		response.Response(r, w, resp, err)
 
 	}

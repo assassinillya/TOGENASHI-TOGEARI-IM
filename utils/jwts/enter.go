@@ -8,7 +8,7 @@ import (
 
 // JwtPayLoad jwt中payload数据
 type JwtPayLoad struct {
-	UserID   uint   `json:"userIDr"`
+	UserID   uint   `json:"userID"`
 	Nickname string `json:"username"` // 用户名
 	Role     int8   `json:"role"`     // 权限  1 管理员  2 普通用户
 }
